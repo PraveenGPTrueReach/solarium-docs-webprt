@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LEADS_BULK.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lead Bulk Actions &amp; CSV Import/Export User Guide</h1>
+<h2>Overview</h2>
+<p>The Lead Bulk Actions feature allows administrators and KAMs to efficiently manage multiple leads simultaneously through:</p>
+<ul>
+<li><strong>Bulk Status Updates</strong>: Update status of up to 50 leads at once</li>
+<li><strong>Bulk Reassignment</strong>: Reassign multiple leads to different Channel Partners</li>
+<li><strong>CSV Import</strong>: Import new leads from CSV files (max 50 rows)</li>
+<li><strong>CSV Export</strong>: Export leads to CSV with current filter applied</li>
+</ul>
+<h2>Key Limitations</h2>
+<h3>50-Lead Limit</h3>
+<p>All bulk operations are limited to <strong>50 leads maximum</strong> per operation to ensure system performance and prevent timeouts.</p>
+<h3>All-or-Nothing Import Rule</h3>
+<p>CSV imports follow an <strong>all-or-nothing validation approach</strong>:</p>
+<ul>
+<li>If ANY row fails validation, NO leads are imported</li>
+<li>All data must be valid before the import can proceed</li>
+<li>Partial imports are not supported</li>
+</ul>
+<h2>CSV Import Guide</h2>
+<h3>Required Columns</h3>
+<p>The following columns must be present and contain valid data:</p>
+<ul>
+<li><code>customerName</code> - Customer&#39;s full name</li>
+<li><code>customerPhone</code> - Valid Indian mobile number (10 digits)</li>
+<li><code>address</code> - Complete address</li>
+<li><code>state</code> - State name</li>
+<li><code>pinCode</code> - 6-digit PIN code</li>
+</ul>
+<h3>Optional Columns</h3>
+<ul>
+<li><code>customerEmail</code> - Valid email address</li>
+<li><code>services</code> - Comma-separated service list</li>
+<li><code>requirements</code> - Detailed requirements</li>
+<li><code>assignedTo</code> - Channel Partner ID</li>
+<li><code>source</code> - Lead source (website, referral, etc.)</li>
+<li><code>followUpDate</code> - Date in YYYY-MM-DD format</li>
+<li><code>remarks</code> - Additional notes</li>
+</ul>
+<h3>Sample CSV Format</h3>
+<pre><code class="language-csv">customerName,customerPhone,customerEmail,address,state,pinCode,services,requirements
+John Doe,9876543210,john@example.com,123 Main St Mumbai,Maharashtra,400001,Solar Panel Installation,5kW residential system
+Jane Smith,9876543211,jane@example.com,456 Park Ave Delhi,Delhi,110001,Solar Water Heater,Home installation
+</code></pre>
+<h3>Validation Rules</h3>
+<ol>
+<li><strong>Phone Number</strong>: Must be valid Indian mobile (10 digits, starting with 6/7/8/9)</li>
+<li><strong>Email</strong>: Must be valid email format (if provided)</li>
+<li><strong>PIN Code</strong>: Must be exactly 6 digits</li>
+<li><strong>Follow-up Date</strong>: Must be in YYYY-MM-DD format (if provided)</li>
+<li><strong>All required fields</strong>: Cannot be empty or contain only whitespace</li>
+</ol>
+<h2>Step-by-Step Usage</h2>
+<h3>Bulk Status Update</h3>
+<ol>
+<li>Navigate to <strong>Leads Management</strong> page</li>
+<li>Select leads using checkboxes (max 50)</li>
+<li>Click <strong>&quot;Update Status&quot;</strong> in the bulk action toolbar</li>
+<li>Choose new status from dropdown</li>
+<li>Enter remarks (minimum 10 characters)</li>
+<li>Fill additional required fields based on status</li>
+<li>Click <strong>&quot;Update X Leads&quot;</strong> to confirm</li>
+<li>Review results in the confirmation dialog</li>
+</ol>
+<h3>Bulk Reassignment</h3>
+<ol>
+<li>Select leads using checkboxes (max 50)</li>
+<li>Click <strong>&quot;Reassign&quot;</strong> in the bulk action toolbar</li>
+<li>Choose Channel Partner from dropdown</li>
+<li>Enter reason for reassignment (minimum 10 characters)</li>
+<li>Click <strong>&quot;Reassign X Leads&quot;</strong> to confirm</li>
+<li>Review results in the confirmation dialog</li>
+</ol>
+<h3>CSV Import</h3>
+<ol>
+<li>Click <strong>&quot;Import CSV&quot;</strong> button (Admin only)</li>
+<li>Download the template if needed</li>
+<li>Upload your CSV file (max 10MB, 50 rows)</li>
+<li>Review the data preview and validation results</li>
+<li>Fix any validation errors in your CSV</li>
+<li>Click <strong>&quot;Import X Leads&quot;</strong> when all data is valid</li>
+<li>Review import results</li>
+</ol>
+<h3>CSV Export</h3>
+<ol>
+<li>Apply desired filters to the leads list</li>
+<li>Click <strong>&quot;Export CSV&quot;</strong> button</li>
+<li>File will download automatically with current timestamp</li>
+<li>Export reflects all currently applied filters</li>
+</ol>
+<h2>Error Handling</h2>
+<h3>Common Validation Errors</h3>
+<ul>
+<li><strong>&quot;Invalid phone format&quot;</strong>: Use 10-digit Indian mobile numbers</li>
+<li><strong>&quot;PIN code must be exactly 6 digits&quot;</strong>: Check PIN code format</li>
+<li><strong>&quot;Invalid email format&quot;</strong>: Ensure proper email structure</li>
+<li><strong>&quot;Required field cannot be empty&quot;</strong>: Fill all mandatory columns</li>
+</ul>
+<h3>Import Errors</h3>
+<ul>
+<li><strong>&quot;CSV contains X rows, but maximum allowed is 50&quot;</strong>: Reduce file size</li>
+<li><strong>&quot;Validation failed&quot;</strong>: Fix all validation errors before importing</li>
+<li><strong>&quot;File too large&quot;</strong>: Keep files under 10MB</li>
+</ul>
+<h3>Bulk Operation Errors</h3>
+<ul>
+<li><strong>&quot;Selection limit exceeded&quot;</strong>: Select maximum 50 leads</li>
+<li><strong>&quot;Insufficient permissions&quot;</strong>: Contact administrator</li>
+<li><strong>&quot;Lead is in terminal status&quot;</strong>: Cannot modify executed/closed leads</li>
+</ul>
+<h2>Best Practices</h2>
+<h3>CSV Import</h3>
+<ol>
+<li>Always download and use the provided template</li>
+<li>Validate data in Excel/Google Sheets before upload</li>
+<li>Keep phone numbers in text format to preserve leading zeros</li>
+<li>Use consistent date format (YYYY-MM-DD)</li>
+<li>Test with small batches first (5-10 rows)</li>
+</ol>
+<h3>Bulk Operations</h3>
+<ol>
+<li>Use filters to narrow down lead selection</li>
+<li>Always provide meaningful remarks for status changes</li>
+<li>Review selection before confirming bulk actions</li>
+<li>Check results dialog for any partial failures</li>
+</ol>
+<h3>Data Management</h3>
+<ol>
+<li>Export leads regularly for backup</li>
+<li>Use consistent naming for CSV files</li>
+<li>Keep import files under 10MB</li>
+<li>Validate phone numbers before import</li>
+</ol>
+<h2>Troubleshooting</h2>
+<h3>Import Issues</h3>
+<ul>
+<li><strong>File won&#39;t upload</strong>: Check file size (max 10MB) and format (.csv)</li>
+<li><strong>Validation errors</strong>: Fix data in source file and re-upload</li>
+<li><strong>Import failed</strong>: Check network connection and try again</li>
+</ul>
+<h3>Bulk Operations</h3>
+<ul>
+<li><strong>Buttons disabled</strong>: Check selection count (max 50)</li>
+<li><strong>Operation failed</strong>: Review error message and retry</li>
+<li><strong>Partial success</strong>: Failed items remain selected for retry</li>
+</ul>
+<h3>Export Issues</h3>
+<ul>
+<li><strong>No download</strong>: Check browser popup blocker</li>
+<li><strong>Empty file</strong>: Verify applied filters don&#39;t exclude all leads</li>
+<li><strong>Large exports</strong>: Use filters to reduce data size</li>
+</ul>
+<h2>Technical Support</h2>
+<p>If you encounter issues not covered in this guide:</p>
+<ol>
+<li>Check the browser console for error details</li>
+<li>Verify your user permissions (Admin/KAM)</li>
+<li>Try refreshing the page and retrying</li>
+<li>Contact technical support with error screenshots</li>
+</ol>
+<h2>Feature Updates</h2>
+<p>This feature is part of Sprint 13 Task 2 and includes:</p>
+<ul>
+<li>Version: 1.0.0</li>
+<li>Last Updated: 2024-02-01</li>
+<li>Compatibility: Modern browsers (Chrome 90+, Firefox 88+, Safari 14+)</li>
+</ul>
+<h2>Component Reuse Patterns</h2>
+<h3>DocCard Component</h3>
+<p>The <code>DocCard</code> component built for lead attachments has been successfully reused in the Customer Management module for KYC document display:</p>
+<pre><code class="language-typescript">// Usage in Leads module
+&lt;DocCard
+  document={leadAttachment}
+  onPreview={handlePreview}
+  onDownload={handleDownload}
+  showActions={canEdit}
+/&gt;
+
+// Reused in Customer module
+&lt;DocCard
+  document={kycDocument}
+  onPreview={handleKycPreview}
+  onApprove={handleApprove}
+  onReject={handleReject}
+  showActions={canManageKyc}
+  variant=&quot;kyc&quot; // Extended with KYC-specific styling
+/&gt;
+</code></pre>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KAM_MODULE.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>KAM Management Module</h1>
+<h2>Overview</h2>
+<p>The KAM (Key Account Manager) Management module provides comprehensive functionality for managing Key Account Managers within the Solarium Web Portal. This module is admin-only and integrates with the existing Channel Partner and Lead management systems.</p>
+<h2>Features</h2>
+<h3>Core Functionality</h3>
+<ul>
+<li>✅ <strong>KAM CRUD Operations</strong>: Create, read, update, and delete KAMs</li>
+<li>✅ <strong>Territory Assignment</strong>: Assign multiple territories to KAMs</li>
+<li>✅ <strong>Status Management</strong>: Activate/deactivate KAMs</li>
+<li>✅ <strong>Advanced Filtering</strong>: Filter by status, territory, and search by name/email</li>
+<li>✅ <strong>Sorting &amp; Pagination</strong>: Sort by name, email, assigned CPs, creation date</li>
+<li>✅ <strong>Cross-Module Integration</strong>: Seamless integration with Channel Partner assignments</li>
+</ul>
+<h3>Access Control</h3>
+<ul>
+<li><strong>Admin Only</strong>: All KAM management operations require admin role</li>
+<li><strong>Territory-Based Filtering</strong>: KAMs see data based on their assigned territories</li>
+<li><strong>RBAC Enforcement</strong>: Client-side and server-side role validation</li>
+</ul>
+<h2>Components</h2>
+<h3>Main Components</h3>
+<h4>KAMManagementPage</h4>
+<p>Main page component that orchestrates the entire KAM management interface.</p>
+<p><strong>Location</strong>: <code>src/pages/kam/KAMManagementPage.tsx</code></p>
+<p><strong>Features</strong>:</p>
+<ul>
+<li>Integrated filters, grid, and drawer</li>
+<li>Admin-only access control</li>
+<li>Real-time data updates</li>
+</ul>
+<h4>KAMGrid</h4>
+<p>Advanced data grid for displaying KAMs with sorting and pagination.</p>
+<p><strong>Location</strong>: <code>src/components/kam/KAMGrid.tsx</code></p>
+<p><strong>Features</strong>:</p>
+<ul>
+<li>Sortable columns</li>
+<li>Inline status toggle</li>
+<li>Virtualization for large datasets</li>
+<li>Responsive design</li>
+</ul>
+<h4>KAMDrawer</h4>
+<p>Create/edit drawer with form validation and territory assignment.</p>
+<p><strong>Location</strong>: <code>src/components/kam/KAMDrawer.tsx</code></p>
+<p><strong>Features</strong>:</p>
+<ul>
+<li>Create/edit modes</li>
+<li>Form validation with Yup</li>
+<li>Territory multi-select</li>
+<li>Status management</li>
+</ul>
+<h4>KAMFilters</h4>
+<p>Comprehensive filtering interface for KAMs.</p>
+<p><strong>Location</strong>: <code>src/components/kam/KAMFilters.tsx</code></p>
+<p><strong>Features</strong>:</p>
+<ul>
+<li>Search by name/email</li>
+<li>Status filtering</li>
+<li>Territory filtering</li>
+<li>Active filter indicators</li>
+</ul>
+<h3>Supporting Components</h3>
+<h4>TerritoryMultiSelect</h4>
+<p>Reusable territory selection component.</p>
+<p><strong>Location</strong>: <code>src/components/common/TerritoryMultiSelect.tsx</code></p>
+<p><strong>Features</strong>:</p>
+<ul>
+<li>Multi-select interface</li>
+<li>Formik integration</li>
+<li>Accessibility support</li>
+</ul>
+<h2>API Integration</h2>
+<h3>Endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/api/v1/kams</code></td>
+<td>List KAMs with filtering</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/kams/:id</code></td>
+<td>Get KAM details</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/kams</code></td>
+<td>Create new KAM</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/v1/kams/:id</code></td>
+<td>Update KAM</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/v1/kams/:id/status</code></td>
+<td>Toggle KAM status</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/v1/kams/:id</code></td>
+<td>Delete KAM</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/v1/kams/:id/assign-cps</code></td>
+<td>Assign CPs to KAM</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/kams/:id/assigned-cps</code></td>
+<td>Get assigned CPs</td>
+</tr>
+</tbody></table>
+<h3>RTK Query Hooks</h3>
+<pre><code class="language-typescript">// Data fetching
+useGetKAMsForManagementQuery()
+useGetKAMQuery()
+useGetKAMAssignedCPsQuery()
+
+// Mutations
+useCreateKAMMutation()
+useUpdateKAMMutation()
+useToggleKAMStatusMutation()
+useDeleteKAMMutation()
+useAssignCPsToKAMMutation()
+
+// Specialized hooks
+useActiveKAMs() // For assignment operations
+</code></pre>
+
+</div>
+</body>
+</html>

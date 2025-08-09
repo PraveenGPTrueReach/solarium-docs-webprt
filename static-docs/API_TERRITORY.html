@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>API_TERRITORY.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>API Territory Management Documentation</h1>
+<h2>Overview</h2>
+<p>The Solarium Web Portal implements sophisticated territory-based access control that automatically filters data based on user geographic assignments. This document details the implementation, usage patterns, and integration points for territory management.</p>
+<h2>Territory System Architecture</h2>
+<h3>Territory Types</h3>
+<pre><code class="language-typescript">type Territory = 
+  | &#39;North&#39; | &#39;South&#39; | &#39;East&#39; | &#39;West&#39; | &#39;Central&#39;
+  | &#39;Northeast&#39; | &#39;Northwest&#39; | &#39;Southeast&#39; | &#39;Southwest&#39;;
+</code></pre>
+<h3>User Territory Assignment</h3>
+<p>Users can be assigned multiple territories, with different access patterns:</p>
+<pre><code class="language-typescript">interface User {
+  id: string;
+  role: UserRole;
+  territories: Territory[];
+  // ... other properties
+}
+
+// Access patterns by role
+const accessPatterns = {
+  admin: { hasFullAccess: true, territories: [] },      // All territories
+  kam: { hasFullAccess: false, territories: [&#39;North&#39;, &#39;South&#39;] }, // Assigned territories
+  cp: { hasFullAccess: false, territories: [&#39;East&#39;] },  // Single territory
+  customer: { hasFullAccess: false, territories: [] }   // No territory access
+};
+</code></pre>
+<h2>Settings API Integration</h2>
+<p>The Settings Management system integrates with territory-based access control while maintaining admin-only restrictions:</p>
+<h3>Access Control Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Settings Access</th>
+<th>Territory Filtering</th>
+<th>Audit Log Access</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Admin</td>
+<td>✅ Full</td>
+<td>❌ None (All data)</td>
+<td>✅ Full</td>
+</tr>
+<tr>
+<td>KAM</td>
+<td>❌ Denied</td>
+<td>✅ Assigned territories</td>
+<td>❌ Denied</td>
+</tr>
+<tr>
+<td>CP</td>
+<td>❌ Denied</td>
+<td>✅ Assigned territories</td>
+<td>❌ Denied</td>
+</tr>
+<tr>
+<td>Customer</td>
+<td>❌ Denied</td>
+<td>❌ None</td>
+<td>❌ Denied</td>
+</tr>
+</tbody></table>
+<h3>Settings Endpoints Territory Behavior</h3>
+<h4>GET /api/v1/settings</h4>
+<ul>
+<li><strong>Admin</strong>: Returns global settings (no territory filtering)</li>
+<li><strong>Non-Admin</strong>: Returns 403 Forbidden</li>
+<li><strong>Territory Headers</strong>: Not applicable (admin-only endpoint)</li>
+</ul>
+<pre><code class="language-typescript">// Settings endpoint - admin only, no territory filtering
+export const getSettings = builder.query&lt;SystemSettings, void&gt;({
+  query: () =&gt; &#39;/api/v1/settings&#39;,
+  // No territory injection for settings
+});
+</code></pre>
+<h4>PATCH /api/v1/settings</h4>
+<ul>
+<li><strong>Admin</strong>: Can update any setting globally</li>
+<li><strong>Non-Admin</strong>: Returns 403 Forbidden</li>
+<li><strong>Territory Impact</strong>: Settings changes affect all territories uniformly</li>
+</ul>
+<pre><code class="language-typescript">// Settings update - global impact, admin only
+const handleSettingsUpdate = async (updates: SettingsUpdatePayload) =&gt; {
+  // Admin role verified server-side
+  // Changes apply to all territories
+  await updateSettings(updates).unwrap();
+};
+</code></pre>
+<h4>GET /api/v1/settings/audit</h4>
+<ul>
+<li><strong>Admin</strong>: See all settings changes across all territories</li>
+<li><strong>Non-Admin</strong>: Returns 403 Forbidden</li>
+<li><strong>Audit Scope</strong>: Global audit trail, not territory-filtered</li>
+</ul>
+<h2>Territory Header Injection</h2>
+<h3>Automatic Header Addition</h3>
+<p>The API slice automatically injects territory information for non-settings endpoints:</p>
+<pre><code class="language-typescript">const baseQueryWithTerritoryInjection = fetchBaseQuery({
+  prepareHeaders: (headers, { getState }) =&gt; {
+    const user = getState().auth.user;
+    
+    // Add territory headers for access control
+    if (user?.role === &#39;kam&#39; &amp;&amp; user.territories?.length &gt; 0) {
+      headers.set(&#39;X-User-Territories&#39;, user.territories.join(&#39;,&#39;));
+      headers.set(&#39;X-Territory-Filter&#39;, &#39;include&#39;);
+    }
+    
+    // Settings endpoints don&#39;t use territory headers (admin-only)
+    return headers;
+  },
+});
+</code></pre>
+<h3>Territory Query Parameters</h3>
+<p>For data endpoints (non-settings), territory parameters are automatically injected:</p>
+<pre><code class="language-typescript">// Example for leads endpoint (NOT settings)
+const getLeads = builder.query&lt;Lead[], LeadQuery&gt;({
+  query: (params) =&gt; {
+    // Territory params automatically added for KAM users
+    // Settings endpoints bypass this logic
+    return `/api/v1/leads?${buildQueryString(params)}`;
+  },
+});
+</code></pre>
+<h2>Settings-Specific Territory Considerations</h2>
+<h3>1. Feature Flag Territories</h3>
+<p>Feature flags set through Settings affect all territories uniformly:</p>
+<pre><code class="language-typescript">// Feature flag update - global scope
+const updateFeatureFlag = async (flag: string, value: boolean) =&gt; {
+  // This change affects ALL territories
+  await updateFeatureFlag({ flag, value }).unwrap();
+  
+  // All users across all territories see the change
+  console.log(`Feature ${flag} set to ${value} globally`);
+};
+</code></pre>
+<h3>2. Threshold Settings</h3>
+<p>Numeric thresholds apply globally across territories:</p>
+<pre><code class="language-typescript">// Example: Session timeout affects all users regardless of territory
+const globalSettings = {
+  sessionTimeoutMin: 45,        // Applied globally
+  thresholds: {
+    MAX_LEADS_PER_PAGE: 100,   // Applied to all territory-filtered lead queries
+  }
+};
+</code></pre>
+<h3>3. Territory-Aware Components</h3>
+<p>Components that depend on both settings and territory data:</p>
+<pre><code class="language-typescript">const TerritoryDashboard = () =&gt; {
+  const { user } = useAuth();
+  const { data: settings } = useGetSettingsQuery();
+  const territoryAccess = getUserTerritoryAccess(user);
+  
+  // Use global settings with territory-filtered data
+  const pageSize = settings?.thresholds.MAX_LEADS_PER_PAGE || 50;
+  const { data: leads } = useGetLeadsQuery({
+    territories: territoryAccess.territories,
+    limit: pageSize,
+  });
+  
+  return (
+    &lt;Dashboard 
+      leads={leads} 
+      settings={settings}
+      territoryInfo={territoryAccess}
+    /&gt;
+  );
+};
+</code></pre>
+<h2>Security Considerations</h2>
+<h3>Settings Security Model</h3>
+<pre><code class="language-typescript">// Security layers for settings access
+const settingsSecurityLayers = {
+  route: &#39;Admin role required for /settings route&#39;,
+  api: &#39;Admin token validation on all settings endpoints&#39;,
+  ui: &#39;Settings navigation hidden for non-admin users&#39;,
+  audit: &#39;All settings changes logged with user attribution&#39;,
+};
+</code></pre>
+<h3>Territory Security Model</h3>
+<pre><code class="language-typescript">// Territory access verification
+const verifyTerritoryAccess = (user: User, requestedData: any) =&gt; {
+  if (user.role === &#39;admin&#39;) {
+    return { allowed: true, scope: &#39;global&#39; };
+  }
+  
+  if (user.role === &#39;kam&#39; &amp;&amp; user.territories?.length &gt; 0) {
+    return { 
+      allowed: true, 
+      scope: &#39;territory&#39;, 
+      territories: user.territories 
+    };
+  }
+  
+  return { allowed: false, scope: &#39;none&#39; };
+};
+</code></pre>
+<h2>Data Flow Examples</h2>
+<h3>Settings Change Propagation</h3>
+<pre><code class="language-mermaid">graph TD
+    A[Admin Updates Setting] --&gt; B[Settings API PATCH]
+    B --&gt; C[Database Update]
+    C --&gt; D[Audit Log Entry]
+    D --&gt; E[Cache Invalidation]
+    E --&gt; F[All Territory Users Affected]
+    F --&gt; G[Feature Flag Context Update]
+    G --&gt; H[Component Re-renders]
+</code></pre>
+<h3>Territory Data Access</h3>
+<pre><code class="language-mermaid">graph TD
+    A[KAM User Requests Leads] --&gt; B[Territory Headers Added]
+    B --&gt; C[Server Territory Filter]
+    C --&gt; D[Territory-Specific Data]
+    D --&gt; E[Global Settings Applied]
+    E --&gt; F[Response to User]
+</code></pre>
+<h2>Integration Patterns</h2>
+<h3>1. Settings with Territory Context</h3>
+<pre><code class="language-typescript">const useSettingsWithTerritory = () =&gt; {
+  const { data: settings } = useGetSettingsQuery();
+  const { user } = useAuth();
+  const territoryAccess = getUserTerritoryAccess(user);
+  
+  return {
+    settings,
+    territoryAccess,
+    canModifySettings: user?.role === &#39;admin&#39;,
+    effectiveSettings: {
+      ...settings,
+      // Territory-specific overrides if needed
+      pageSize: Math.min(
+        settings?.thresholds.MAX_LEADS_PER_PAGE || 50,
+        territoryAccess.territories.length * 25
+      ),
+    },
+  };
+};
+</code></pre>
+<h3>2. Territory-Aware Settings Display</h3>
+<pre><code class="language-typescript">const SettingsImpactIndicator = ({ setting }: { setting: string }) =&gt; {
+  const { user } = useAuth();
+  const territoryAccess = getUserTerritoryAccess(user);
+  
+  return (
+    &lt;Chip
+      label={
+        user?.role === &#39;admin&#39; 
+          ? &#39;Global Impact&#39; 
+          : `Affects: ${territoryAccess.territories.join(&#39;, &#39;)}`
+      }
+      color={user?.role === &#39;admin&#39; ? &#39;warning&#39; : &#39;info&#39;}
+    /&gt;
+  );
+};
+</code></pre>
+<h3>3. Audit Log Territory Context</h3>
+<pre><code class="language-typescript">const TerritoryAuditContext = ({ auditEntry }: { auditEntry: SettingsAuditLog }) =&gt; {
+  return (
+    &lt;Box&gt;
+      &lt;Typography variant=&quot;body2&quot;&gt;
+        Setting: {auditEntry.field}
+      &lt;/Typography&gt;
+      &lt;Typography variant=&quot;caption&quot; color=&quot;text.secondary&quot;&gt;
+        Global Impact: Affects all territories and users
+      &lt;/Typography&gt;
+    &lt;/Box&gt;
+  );
+};
+</code></pre>
+<h2>Best Practices</h2>
+<h3>1. Settings Design Patterns</h3>
+<pre><code class="language-typescript">// DO: Use global settings that apply uniformly
+const globalSettings = {
+  sessionTimeoutMin: 30,
+  featureFlags: {
+    ADVANCED_REPORTING: true,
+  },
+};
+
+// DON&#39;T: Create territory-specific settings in global config
+const territorySpecificSettings = {
+  northSettings: { /* ... */ },
+  southSettings: { /* ... */ },
+};
+</code></pre>
+<h3>2. Territory-Aware Components</h3>
+<pre><code class="language-typescript">// DO: Combine global settings with territory-filtered data
+const DashboardWithSettings = () =&gt; {
+  const { data: settings } = useGetSettingsQuery();
+  const { user } = useAuth();
+  const territoryData = useTerritoryFilteredData(user);
+  
+  return &lt;Dashboard settings={settings} data={territoryData} /&gt;;
+};
+
+// DON&#39;T: Try to filter settings by territory
+const TerritorySettings = () =&gt; {
+  // This is incorrect - settings are global
+  const { data: territorySettings } = useGetSettingsQuery({
+    territory: user.territories[0], // ❌ Wrong approach
+  });
+};
+</code></pre>
+<h3>3. Access Control Verification</h3>
+<pre><code class="language-typescript">// DO: Verify access at multiple layers
+const SettingsPage = () =&gt; {
+  const { user } = useAuth();
+  const canAccess = user?.role === &#39;admin&#39;;
+  
+  if (!canAccess) {
+    return &lt;AccessDenied /&gt;;
+  }
+  
+  return &lt;SettingsContent /&gt;;
+};
+
+// Server-side verification also required
+app.get(&#39;/api/v1/settings&#39;, requireAdmin, (req, res) =&gt; {
+  // Double verification
+  if (req.user.role !== &#39;admin&#39;) {
+    return res.status(403).json({ error: &#39;Admin required&#39; });
+  }
+  // ...
+});
+</code></pre>
+<h2>Migration and Maintenance</h2>
+<h3>Adding New Territory Types</h3>
+<pre><code class="language-typescript">// 1. Update territory types
+type Territory = 
+  | &#39;North&#39; | &#39;South&#39; | &#39;East&#39; | &#39;West&#39; | &#39;Central&#39;
+  | &#39;Northeast&#39; | &#39;Northwest&#39; | &#39;Southeast&#39; | &#39;Southwest&#39;
+  | &#39;International&#39;; // New territory
+
+// 2. Update validation
+const validateTerritory = (territory: string): territory is Territory =&gt; {
+  return TERRITORIES.includes(territory as Territory);
+};
+
+// 3. Settings remain unaffected (global scope)
+</code></pre>
+<h3>Settings Impact Analysis</h3>
+<pre><code class="language-typescript">// Tool for analyzing settings impact
+const analyzeSettingsImpact = (setting: string, value: any) =&gt; {
+  const impact = {
+    scope: &#39;global&#39;,
+    affectedUsers: &#39;all&#39;,
+    affectedTerritories: &#39;all&#39;,
+    riskLevel: getRiskLevel(setting, value),
+  };
+  
+  console.log(`Setting ${setting} impact:`, impact);
+  return impact;
+};
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>Common Issues</h3>
+<ol>
+<li><p><strong>Settings not visible to KAM users</strong></p>
+<ul>
+<li>✅ Expected behavior - settings are admin-only</li>
+<li>Solution: Use admin account for settings management</li>
+</ul>
+</li>
+<li><p><strong>Territory headers in settings requests</strong></p>
+<ul>
+<li>✅ Expected behavior - settings endpoints ignore territory headers</li>
+<li>Settings apply globally, not per territory</li>
+</ul>
+</li>
+<li><p><strong>Feature flags not affecting territory-specific components</strong></p>
+<ul>
+<li>Check feature flag context integration</li>
+<li>Verify component subscription to settings updates</li>
+</ul>
+</li>
+</ol>
+<h3>Debug Tools</h3>
+<pre><code class="language-typescript">// Development debugging
+if (process.env.NODE_ENV === &#39;development&#39;) {
+  window.__TERRITORY_DEBUG__ = {
+    currentUser: () =&gt; store.getState().auth.user,
+    territoryAccess: (user) =&gt; getUserTerritoryAccess(user),
+    settingsScope: &#39;global - affects all territories&#39;,
+    apiHeaders: () =&gt; {
+      // Show current API headers being sent
+    },
+  };
+}
+</code></pre>
+<hr>
+<p>This documentation covers the integration between Settings Management and Territory-based access control. The key principle is that <strong>Settings are global and admin-only</strong>, while <strong>data endpoints use territory filtering for non-admin users</strong>.</p>
+<h2>Implementation</h2>
+<h3>1. User Model Extension</h3>
+<p>Users now include a <code>territories</code> array:</p>
+<pre><code class="language-typescript">interface User {
+  // ... other fields
+  territories: Territory[]; // Array of assigned territories
+}
+</code></pre>
+<h3>2. Automatic Query Parameter Injection</h3>
+<p>RTK Query automatically injects territory parameters for KAM users:</p>
+<pre><code class="language-typescript">// For KAM user with territories [&#39;North&#39;, &#39;East&#39;]:
+GET /api/v1/leads?search=solar&amp;territories=North,East
+
+// For Admin user:
+GET /api/v1/leads?search=solar
+// (no territory filtering)
+</code></pre>
+<h3>3. API Headers</h3>
+<p>Territory access information is sent via headers:</p>
+<pre><code class="language-http"># Admin users
+X-Territory-Access: all
+
+# KAM users  
+X-Territory-Access: filtered
+X-User-Territories: North,East
+</code></pre>
+<h3>4. Client-Side Filtering</h3>
+<p>UI components use hooks to filter data:</p>
+<pre><code class="language-typescript">import { useTerritoryFilter } from &#39;../hooks/useTerritoryFilter&#39;;
+
+const MyComponent = () =&gt; {
+  const allLeads = useGetLeadsQuery();
+  const filteredLeads = useTerritoryFilter(allLeads.data);
+  
+  // filteredLeads only contains leads the user can access
+};
+</code></pre>
+<h2>API Usage Examples</h2>
+<h3>Query Parameters</h3>
+<p>KAM users automatically get territory filtering:</p>
+<pre><code class="language-javascript">// This call:
+api.getLeads({ search: &#39;solar&#39;, status: &#39;active&#39; })
+
+// Automatically becomes:
+// GET /leads?search=solar&amp;status=active&amp;territories=North,East
+</code></pre>
+<h3>Territory Validation</h3>
+<p>Server-side validation ensures data integrity:</p>
+<pre><code class="language-javascript">// Validate before data modification
+const validation = validateTerritoryAccess(user, &#39;North&#39;, &#39;write&#39;);
+if (!validation.allowed) {
+  throw new Error(validation.reason);
+}
+</code></pre>
+<h2>Data Reduction Impact</h2>
+<p>Territory filtering significantly reduces data exposure:</p>
+<ul>
+<li><strong>Admin users</strong>: See 100% of system data</li>
+<li><strong>KAM users</strong>: See ~22% of system data (2/9 territories)</li>
+<li><strong>Reduction rate</strong>: &gt;80% for typical KAM users</li>
+</ul>
+<h2>Testing</h2>
+<h3>Unit Tests</h3>
+<p>Territory utilities are comprehensively tested:</p>
+<pre><code class="language-bash">npm run test territory
+</code></pre>
+<p>Key test scenarios:</p>
+<ul>
+<li>Admin vs KAM data access</li>
+<li>Query parameter injection</li>
+<li>Client-side filtering</li>
+<li>Negative access validation</li>
+</ul>
+<h3>Integration Tests</h3>
+<p>API integration validates:</p>
+<ul>
+<li>Automatic parameter injection</li>
+<li>Header setting</li>
+<li>Territory-based responses</li>
+</ul>
+<h2>Security Considerations</h2>
+<ol>
+<li><strong>Server-side enforcement</strong>: Territory filtering must be enforced on the backend</li>
+<li><strong>Client-side filtering</strong>: Provides UX optimization but not security</li>
+<li><strong>Data validation</strong>: All data modifications validate territory access</li>
+<li><strong>Audit logging</strong>: Territory access violations should be logged</li>
+</ol>
+<h2>Development Guidelines</h2>
+<h3>Adding New Territory-Filtered Endpoints</h3>
+<ol>
+<li>Server endpoint should respect <code>territories</code> query parameter</li>
+<li>Client endpoint automatically gets territory injection (no code changes needed)</li>
+<li>Add tests for both admin and KAM user scenarios</li>
+</ol>
+<h3>UI Components</h3>
+<p>Use territory hooks for consistent filtering:</p>
+<pre><code class="language-typescript">// ✅ Correct
+const filteredData = useTerritoryFilter(rawData);
+
+// ❌ Incorrect - manual filtering
+const filteredData = rawData.filter(item =&gt; 
+  user.territories.includes(item.territory)
+);
+</code></pre>
+<h3>Testing New Features</h3>
+<p>Always test with both user types:</p>
+<pre><code class="language-typescript">describe(&#39;New Feature&#39;, () =&gt; {
+  it(&#39;should allow admin full access&#39;, () =&gt; {
+    // Test with mockAdminUser
+  });
+  
+  it(&#39;should filter data for KAM users&#39;, () =&gt; {
+    // Test with mockKamUser
+  });
+  
+  it(&#39;should prevent out-of-scope access&#39;, () =&gt; {
+    // Negative test with restricted data
+  });
+});
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>Common Issues</h3>
+<ol>
+<li><strong>KAM seeing no data</strong>: Check territory assignments in user profile</li>
+<li><strong>Query parameters not injected</strong>: Verify RTK Query setup and user authentication</li>
+<li><strong>Client-side filtering not working</strong>: Ensure <code>useTerritoryFilter</code> hook is used correctly</li>
+</ol>
+<h3>Debug Tools</h3>
+<p>Development environment provides territory debugging:</p>
+<pre><code class="language-javascript">// Browser console
+window.__TERRITORY_DEBUG__ = true;
+
+// This will log all territory filtering operations
+</code></pre>
+<h2>Performance Considerations</h2>
+<ul>
+<li>Territory filtering reduces data transfer by &gt;80% for KAM users</li>
+<li>Client-side filtering is memoized for performance</li>
+<li>API calls include territory headers to enable server-side optimizations</li>
+</ul>
+<h2>Bulk Operations API</h2>
+<h3>POST /api/v1/leads/import</h3>
+<p>Import leads from CSV file with validation.</p>
+<p><strong>Request:</strong></p>
+<pre><code>Content-Type: multipart/form-data
+Authorization: Bearer &lt;token&gt;
+
+Body: FormData with &#39;file&#39; field containing CSV
+</code></pre>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;importResults&quot;: {
+      &quot;total&quot;: 50,
+      &quot;successful&quot;: 45,
+      &quot;failed&quot;: 5,
+      &quot;errors&quot;: [
+        {
+          &quot;row&quot;: 3,
+          &quot;field&quot;: &quot;customerPhone&quot;, 
+          &quot;reason&quot;: &quot;Invalid phone format&quot;
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<p><strong>Territory Filtering:</strong> None (creates leads for assignment)
+<strong>Role Access:</strong> Admin only
+<strong>Rate Limits:</strong> 5 requests per minute
+<strong>File Limits:</strong> 10MB, 50 rows maximum</p>
+<h3>PATCH /api/v1/leads/bulk</h3>
+<p>Update multiple lead statuses simultaneously.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;leadIds&quot;: [&quot;LEAD-001&quot;, &quot;LEAD-002&quot;],
+  &quot;updates&quot;: {
+    &quot;status&quot;: &quot;In Discussion&quot;,
+    &quot;remarks&quot;: &quot;Bulk status update&quot;,
+    &quot;followUpDate&quot;: &quot;2024-02-15&quot;
+  }
+}
+</code></pre>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;successIds&quot;: [&quot;LEAD-001&quot;, &quot;LEAD-002&quot;],
+    &quot;failed&quot;: []
+  }
+}
+</code></pre>
+<p><strong>Territory Filtering:</strong> Applied - KAM can only update leads in assigned territories
+<strong>Role Access:</strong> Admin, KAM
+<strong>Batch Limit:</strong> 50 leads maximum</p>
+<h3>PATCH /api/v1/leads/bulk-reassign</h3>
+<p>Reassign multiple leads to different Channel Partner.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;leadIds&quot;: [&quot;LEAD-001&quot;, &quot;LEAD-002&quot;],
+  &quot;cpId&quot;: &quot;CP-123&quot;,
+  &quot;reason&quot;: &quot;Territory restructuring&quot;
+}
+</code></pre>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;successIds&quot;: [&quot;LEAD-001&quot;],
+    &quot;failed&quot;: [
+      {
+        &quot;id&quot;: &quot;LEAD-002&quot;, 
+        &quot;reason&quot;: &quot;Lead already assigned to this CP&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<p><strong>Territory Filtering:</strong> Applied - KAM restricted to assigned territories
+<strong>Role Access:</strong> Admin, KAM
+<strong>Batch Limit:</strong> 50 leads maximum</p>
+<h3>GET /api/v1/leads/export</h3>
+<p>Export leads to CSV format with applied filters.</p>
+<p><strong>Request:</strong></p>
+<pre><code>GET /api/v1/leads/export?status=New%20Lead&amp;state=Maharashtra&amp;format=csv
+Authorization: Bearer &lt;token&gt;
+</code></pre>
+<p><strong>Response:</strong></p>
+<pre><code>Content-Type: text/csv
+Content-Disposition: attachment; filename=&quot;leads-20240201-1030.csv&quot;
+
+leadId,customerName,customerPhone,status,createdAt
+LEAD-001,John Doe,9876543210,New Lead,2024-01-15
+</code></pre>
+<p><strong>Territory Filtering:</strong> Applied - respects user&#39;s territory access
+<strong>Role Access:</strong> Admin, KAM
+<strong>Query Parameters:</strong></p>
+<ul>
+<li><code>format</code>: csv (default) | xlsx</li>
+<li>All lead filter parameters (status, state, etc.)</li>
+</ul>
+
+</div>
+</body>
+</html>

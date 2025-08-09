@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Solarium Web Portal — Guides</title>
+<style>
+  :root{
+    --bg:#0b0c0f;--panel:#11131a;--muted:#9aa3b2;--fg:#e7ecf3;--brand:#0b5fff;--border:#1d2330;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#ffffff; --panel:#f8fafc; --muted:#556070; --fg:#0b1220; --brand:#0b5fff; --border:#e5e7eb; }
+  }
+  *{ box-sizing:border-box }
+  body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans; background:var(--bg); color:var(--fg) }
+  a{ color:inherit; text-decoration:none }
+  .app{ display:grid; grid-template-columns: 280px 1fr; min-height:100vh }
+  .topbar{ display:none }
+
+  /* Sidebar */
+  .sidebar{ border-right:1px solid var(--border); background:var(--panel); padding:16px; position:sticky; top:0; height:100vh; overflow:auto }
+  .brand{ font-weight:700; letter-spacing:.2px; font-size:18px; }
+  .search{ margin:12px 0 8px }
+  .search input{ width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--fg); outline:none }
+  .nav{ margin:8px 0; padding:0; list-style:none }
+  .nav li a{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:var(--muted) }
+  .nav li a:hover{ background:rgba(11,95,255,.08); color:var(--fg) }
+  .nav li a.active{ background:rgba(11,95,255,.15); color:#fff }
+  .badge{ font-size:11px; color:#fff; background:var(--brand); padding:2px 8px; border-radius:999px }
+
+  /* Content */
+  .content{ padding:20px; min-width:0 }
+  .content header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px }
+  .content .title{ font-size:20px; font-weight:700 }
+  .frame{ border:1px solid var(--border); border-radius:12px; overflow:hidden; height: calc(100vh - 84px); background:#fff }
+  .frame iframe{ width:100%; height:100%; border:0 }
+
+  /* Mobile */
+  @media (max-width: 900px){
+    .app{ grid-template-columns: 1fr }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--panel); position:sticky; top:0; z-index:5 }
+    .sidebar{ position:fixed; inset:0 auto 0 0; width:80%; max-width:320px; transform: translateX(-100%); transition: transform .25s ease; z-index:10 }
+    .sidebar.open{ transform: translateX(0) }
+    .scrim{ position:fixed; inset:0; background:rgba(0,0,0,.35); opacity:0; pointer-events:none; transition: opacity .2s }
+    .scrim.show{ opacity:1; pointer-events:auto }
+    .content{ padding:16px }
+  }
+
+  /* Utility */
+  .btn{ display:inline-flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--fg); cursor:pointer }
+  .btn:hover{ border-color:var(--brand) }
+  .muted{ color:var(--muted) }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn" id="menuBtn" aria-label="Open navigation">☰</button>
+    <div class="brand">Solarium Web Portal — <span class="muted">Guides</span></div>
+    <a class="btn" href="../index.html">Home</a>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">Solarium Web Portal <span class="badge">Guides</span></div>
+      <div class="search"><input id="search" type="search" placeholder="Search guides…" aria-label="Search guides" /></div>
+      <ul class="nav" id="nav">
+        <!-- Links -->
+        <li><a data-guide="README.html" href="README.html">Overview</a></li>
+        <li><a data-guide="FEATURES.html" href="FEATURES.html">Features (WEBPRT)</a></li>
+        <li><a data-guide="API_TERRITORY.html" href="API_TERRITORY.html">API Territory</a></li>
+        <li><a data-guide="BUILD.html" href="BUILD.html">Build</a></li>
+        <li><a data-guide="CI_LOAD_TESTING.html" href="CI_LOAD_TESTING.html">CI Load Testing</a></li>
+        <li><a data-guide="CP_MODULE.html" href="CP_MODULE.html">CP Module</a></li>
+        <li><a data-guide="DOC_MODULE.html" href="DOC_MODULE.html">Doc Module</a></li>
+        <li><a data-guide="GITHUB_SECRETS.html" href="GITHUB_SECRETS.html">GitHub Secrets</a></li>
+        <li><a data-guide="GRAFANA_DASHBOARD.html" href="GRAFANA_DASHBOARD.html">Grafana Dashboard</a></li>
+        <li><a data-guide="KAM_MODULE.html" href="KAM_MODULE.html">KAM Module</a></li>
+        <li><a data-guide="LEADS_BULK.html" href="LEADS_BULK.html">Leads Bulk</a></li>
+        <li><a data-guide="LOAD_TESTING.html" href="LOAD_TESTING.html">Load Testing</a></li>
+        <li><a data-guide="PERFORMANCE_THRESHOLDS.html" href="PERFORMANCE_THRESHOLDS.html">Performance Thresholds</a></li>
+        <li><a data-guide="QA_PIPELINE.html" href="QA_PIPELINE.html">QA Pipeline</a></li>
+        <li><a data-guide="QUOTATION_API.html" href="QUOTATION_API.html">Quotation API</a></li>
+        <li><a data-guide="QUOTATION_WIZARD.html" href="QUOTATION_WIZARD.html">Quotation Wizard</a></li>
+        <li><a data-guide="SERVICES_MODULE.html" href="SERVICES_MODULE.html">Services Module</a></li>
+        <li><a data-guide="SETTINGS.html" href="SETTINGS.html">Settings</a></li>
+        <li><a data-guide="SOAK_TESTING.html" href="SOAK_TESTING.html">Soak Testing</a></li>
+        <li><a data-guide="TESTING.html" href="TESTING.html">Testing</a></li>
+        <li><a data-guide="TEST_DATA_CLEANUP.html" href="TEST_DATA_CLEANUP.html">Test Data Cleanup</a></li>
+        <li><a data-guide="TICKET_MODULE.html" href="TICKET_MODULE.html">Ticket Module</a></li>
+        <li><a data-guide="UX_PERFORMANCE_TESTING.html" href="UX_PERFORMANCE_TESTING.html">UX Performance Testing</a></li>
+        <li><a data-guide="csv-api.html" href="csv-api.html">CSV API</a></li>
+      </ul>
+      <div class="muted" style="font-size:12px;margin-top:8px">Open offline via file://</div>
+    </aside>
+
+    <main class="content">
+      <header>
+        <div class="title" id="pageTitle">Overview</div>
+      </header>
+      <div class="frame">
+        <iframe id="frame" src="README.html" title="Guide content"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+<script>
+(function(){
+  const nav = document.getElementById('nav');
+  const links = Array.from(nav.querySelectorAll('a[data-guide]'));
+  const frame = document.getElementById('frame');
+  const title = document.getElementById('pageTitle');
+  const search = document.getElementById('search');
+  const sidebar = document.getElementById('sidebar');
+  const scrim = document.getElementById('scrim');
+  const menuBtn = document.getElementById('menuBtn');
+
+  function setActive(href){
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === href));
+    const active = links.find(a => a.getAttribute('href') === href);
+    if(active) title.textContent = active.textContent.trim();
+  }
+
+  function openGuide(href, push=true){
+    frame.src = href;
+    setActive(href);
+    if(push) location.hash = encodeURIComponent(href);
+    closeSidebar();
+  }
+
+  function initFromHash(){
+    const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'README.html';
+    const exists = links.some(a => a.getAttribute('href') === h);
+    openGuide(exists ? h : 'README.html', false);
+  }
+
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      openGuide(a.getAttribute('href'));
+    });
+  });
+
+  window.addEventListener('hashchange', initFromHash);
+  initFromHash();
+
+  // Search filter
+  search.addEventListener('input', () => {
+    const q = search.value.toLowerCase();
+    links.forEach(a => {
+      const show = a.textContent.toLowerCase().includes(q);
+      a.parentElement.style.display = show ? '' : 'none';
+    });
+  });
+
+  // Mobile sidebar
+  function openSidebar(){
+    sidebar.classList.add('open');
+    scrim.hidden = false; scrim.classList.add('show');
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('open');
+    scrim.classList.remove('show'); setTimeout(()=>scrim.hidden=true, 200);
+  }
+  if(menuBtn){
+    menuBtn.addEventListener('click', openSidebar);
+    scrim.addEventListener('click', closeSidebar);
+  }
+})();
+</script>
+</body>
+</html>

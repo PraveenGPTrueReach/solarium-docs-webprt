@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Solarium Web Portal — Features</title>
+<style>
+  :root{--bg:#ffffff;--ink:#0b1220;--muted:#556070;--brand:#0b5fff;--panel:#f8fafc;--border:#e5e7eb}
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#0b0c0f;--ink:#e7ecf3;--muted:#9aa3b2;--panel:#11131a;--border:#1d2330;--brand:#3b82f6}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:1100px;margin:auto;padding:24px}
+  h1{margin:0 0 6px;font-size:28px}
+  p.lead{margin:0 0 18px;color:var(--muted)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:18px 0 8px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .card h3{margin:0 0 6px;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:14px}
+  .tag{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted);margin-right:6px}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:14px}
+  th{color:var(--muted)}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .section{margin:22px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Features available in this project</h1>
+  <p class="lead">A concise, customer‑friendly overview of the capabilities in the Solarium Web Portal. This page is derived from the project’s source and internal documentation and avoids speculative items.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Authentication & Session</h3>
+      <p>Email/password login for Admin and Key Account Manager (KAM). Inactivity timeout is 30 minutes; expired or unauthorized requests trigger a clear sign‑out and re‑login.</p>
+    </div>
+    <div class="card">
+      <h3>Role‑based UI & Territories</h3>
+      <p>Conditional navigation and feature gating based on role. KAM access is scoped by assigned territories; Admin has full access.</p>
+    </div>
+    <div class="card">
+      <h3>Lead Management</h3>
+      <p>Filterable lists, detail views, status updates (with override reason), timeline of changes, bulk operations up to 50 items, and CSV export aligned with current filters.</p>
+    </div>
+    <div class="card">
+      <h3>Quotation Management</h3>
+      <p>Seven‑step wizard with draft save for Admin/KAM, sharing with customers, an explicit “Customer Accepted” stage before “Won,” and immutable PDFs once finalized. Only one accepted quotation per lead is allowed.</p>
+    </div>
+    <div class="card">
+      <h3>Commissions & Payouts</h3>
+      <p>Admin reviews and can override amounts, then marks commissions as Paid (including bulk pay). Paid status is final and not reversible.</p>
+    </div>
+    <div class="card">
+      <h3>Master Data</h3>
+      <p>Admin‑only CRUD for panels, inverters, fees, and related parameters. Changes apply immediately to new or resumed quotations; soft‑delete and basic audit are maintained.</p>
+    </div>
+    <div class="card">
+      <h3>Documents & KYC</h3>
+      <p>View and approval workflows with short‑lived upload/download links. Approved KYC documents cannot be superseded; latest versions are shown while older ones are retained as required. Practical limits include single PUT uploads (~10&nbsp;MB) and up to seven attachments per lead.</p>
+    </div>
+    <div class="card">
+      <h3>Settings & Feature Flags</h3>
+      <p>Admin can toggle selected settings. Active sessions pick up changes via simple periodic refresh without forcing immediate reloads.</p>
+    </div>
+    <div class="card">
+      <h3>Reporting & Dashboards</h3>
+      <p>Minimal summaries (e.g., leads by status, pending vs. paid) and CSV export for deeper external analysis.</p>
+    </div>
+    <div class="card">
+      <h3>Support Tickets</h3>
+      <p>View ticket threads, reply (including attachments), and close with notes.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Feature access by role</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Admin</th><th>KAM</th></tr></thead>
+      <tbody>
+        <tr><td>Authentication & session</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Role‑based navigation</td><td>Yes</td><td>Yes (limited)</td></tr>
+        <tr><td>Lead management</td><td>Full</td><td>Territory‑scoped</td></tr>
+        <tr><td>Quotation management</td><td>Create / Share</td><td>Create / Share (within scope)</td></tr>
+        <tr><td>Commissions</td><td>Approve / Pay</td><td>Read‑only</td></tr>
+        <tr><td>Master data</td><td>Full (Admin‑only)</td><td>View</td></tr>
+        <tr><td>Documents & KYC</td><td>Approve / Supersede (with rules)</td><td>Approve within scope</td></tr>
+        <tr><td>Settings / Feature flags</td><td>Admin‑only</td><td>–</td></tr>
+        <tr><td>Reporting & dashboards</td><td>Yes</td><td>Yes (scope)</td></tr>
+        <tr><td>Support tickets</td><td>Yes</td><td>Yes (scope)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <p class="lead">This page is intended for offline review and can be opened directly from the static distribution.</p>
+  </div>
+</div>
+</body>
+</html>
+
+

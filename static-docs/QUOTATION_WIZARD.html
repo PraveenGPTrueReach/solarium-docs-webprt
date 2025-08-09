@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>QUOTATION_WIZARD.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Quotation Wizard Documentation</h1>
+<h2>Overview</h2>
+<p>The Quotation Wizard is a comprehensive 7-step form system that allows Admin and KAM users to create, save, and manage solar installation quotations. It supports draft functionality, real-time pricing calculations, and role-based access control.</p>
+<h2>Architecture</h2>
+<h3>Key Components</h3>
+<p>src/ ├── types/quotation.types.ts # Core DTOs and interfaces ├── types/quotationWizard.types.ts # Wizard-specific types ├── hooks/useQuotationWizard.ts # Main wizard hook ├── contexts/QuotationWizardContext.tsx # React context provider ├── utils/quotationPricing.ts # Business logic utilities ├── utils/quotationGuards.ts # Role-based permissions ├── components/quotation/ # UI components │ ├── QuotationWizard.tsx # Main wizard wrapper │ ├── steps/ # Individual step components │ └── PricePreview.tsx # Real-time pricing display └── pages/quotations/QuotationsPage.tsx # Management interface</p>
+<h2>Data Transfer Objects (DTOs)</h2>
+<h3>Core Quotation Interface</h3>
+<pre><code class="language-typescript">export interface Quotation {
+  id: string;
+  quotationId: string;              // QUOTE-XXXX format
+  leadId: string;
+  
+  // Customer information
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  
+  // System configuration
+  systemKW: number;
+  roofType: RoofType;
+  state: string;
+  discom: string;
+  phase: Phase;
+  smartMeter: boolean;
+  
+  // Component specifications
+  panels: PanelConfig;
+  inverter: InverterConfig;
+  bom: BOMConfig;
+  
+  // Pricing details
+  dealerAddOnRate: number;
+  pricing: PricingBreakdown;
+  
+  // Workflow status
+  status: QuotationStatus;
+  sharedWithCustomer: boolean;
+  
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+  sharedAt?: string;
+  acceptedAt?: string;
+  
+  // Draft-specific fields
+  stepJson?: Record&lt;string, any&gt;;
+  draftExpiresAt?: string;
+}
+
+Quotation Status Flow
+export type QuotationStatus = &#39;Draft&#39; | &#39;Created&#39; | &#39;Shared&#39; | &#39;Accepted&#39; | &#39;Rejected&#39;;
+
+Status Transitions:
+
+Draft → Created (when wizard is completed)
+Created → Shared (when shared with customer)
+Shared → Accepted (when customer accepts)
+Shared → Rejected (when customer rejects)
+
+Configuration Objects
+export interface PanelConfig {
+  make: string;
+  variant: string;
+  count: number;
+  wattage: number;
+  dcrFlag: boolean;        // DCR certification for subsidies
+}
+
+export interface InverterConfig {
+  model: string;
+  capacity: number;
+  phase: Phase;
+  recommended?: boolean;
+}
+
+export interface BOMConfig {
+  cableType: CableType;    // &#39;Standard&#39; | &#39;Polycab&#39;
+  extraStructureHeight: number; // in meters, 0-2m in 0.5m steps
+}
+
+export interface PricingBreakdown {
+  hardwareSubtotal: number;
+  inflatedBasePrice: number;
+  dealerAddOn: number;
+  systemPrice: number;
+  subsidyDetails: SubsidyDetails;
+  finalPrice: number;
+}
+
+Wizard Hook Architecture
+useQuotationWizard Hook
+The main hook manages wizard state using Immer for immutable updates:
+
+const { state, actions, computed } = useQuotationWizard()
+
+State Structure
+interface WizardState {
+  // Navigation
+  currentStep: WizardStep;
+  completedSteps: Set&lt;WizardStep&gt;;
+  
+  // Form data for each step
+  customerSelection: CustomerSelectionData;
+  systemRequirements: SystemRequirementsData;
+  panels: PanelConfigData;
+  inverter: InverterConfigData;
+  bom: BOMConfigData;
+  pricing: PricingConfigData;
+  
+  // Draft management
+  draftId?: string;
+  isDraftSaving: boolean;
+  lastSavedAt?: string;
+  
+  // Submission state
+  isSubmitting: boolean;
+  submitError?: string;
+}
+
+Available Actions
+
+interface WizardActions {
+  // Navigation
+  nextStep: () =&gt; void;
+  prevStep: () =&gt; void;
+  goToStep: (step: WizardStep) =&gt; void;
+  
+  // Form updates
+  updateCustomerSelection: (data: Partial&lt;CustomerSelectionData&gt;) =&gt; void;
+  updateSystemRequirements: (data: Partial&lt;SystemRequirementsData&gt;) =&gt; void;
+  updatePanels: (data: Partial&lt;PanelConfigData&gt;) =&gt; void;
+  updateInverter: (data: Partial&lt;InverterConfigData&gt;) =&gt; void;
+  updateBOM: (data: Partial&lt;BOMConfigData&gt;) =&gt; void;
+  updatePricingConfig: (data: Partial&lt;PricingConfigData&gt;) =&gt; void;
+  
+  // Draft operations
+  saveDraft: () =&gt; Promise&lt;{ success: boolean; error?: string }&gt;;
+  
+  // Wizard lifecycle
+  resetWizard: () =&gt; void;
+  submitQuotation: () =&gt; Promise&lt;void&gt;;
+}
+
+Computed Values
+interface WizardComputed {
+  // Validation
+  currentStepValid: boolean;
+  canGoNext: boolean;
+  canGoPrev: boolean;
+  
+  // Progress
+  completionPercentage: number;
+  totalSteps: number;
+  
+  // Pricing calculations
+  pricing: PricingBreakdown;
+  
+  // Draft status
+  hasUnsavedChanges: boolean;
+  saveStatus: &#39;unsaved&#39; | &#39;saving&#39; | &#39;saved&#39; | &#39;error&#39;;
+  canSave: boolean;
+}
+
+Draft Workflow
+Draft Lifecycle
+Creation: User starts wizard → auto-creates draft on first data entry
+Auto-save: Throttled saves every 30 seconds when data changes
+Manual save: User clicks &quot;Save Draft&quot; button
+Resume: User can resume from quotations list
+Expiration: Drafts expire after 24 hours (configurable)
+Cleanup: Expired drafts are marked but not auto-deleted
+
+Draft Storage
+Drafts store the complete wizard state in the stepJson field:
+interface DraftData {
+  currentStep: WizardStep;
+  completedSteps: WizardStep[];
+  formData: {
+    customerSelection: CustomerSelectionData;
+    systemRequirements: SystemRequirementsData;
+    // ... other step data
+  };
+  pricing: PricingBreakdown;
+  lastModified: string;
+}
+
+Auto-save Implementation
+// Throttled auto-save (configurable interval)
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
+useEffect(() =&gt; {
+  if (hasUnsavedChanges &amp;&amp; draftId) {
+    const timer = setTimeout(() =&gt; {
+      saveDraft();
+    }, AUTO_SAVE_INTERVAL);
+    
+    return () =&gt; clearTimeout(timer);
+  }
+}, [hasUnsavedChanges, draftId]);
+
+Business Logic Utilities
+Pricing Calculations
+Central Subsidy (S₀)
+export const calculateCentralSubsidy = (capacityKW: number): number =&gt; {
+  if (capacityKW &lt; 1) return 0;
+  if (capacityKW &lt;= 2) return capacityKW * 30000;
+  if (capacityKW &lt;= 3) return 60000 + (capacityKW - 2) * 18000;
+  return 78000; // Capped at ₹78,000
+};
+State Subsidy Rules
+export const calculateStateSubsidy = (input: SubsidyCalculationInput): number =&gt; {
+  const { capacityKW, isDcrPanel, stateSubsidyRule } = input;
+  
+  // State subsidies only apply to DCR panels
+  if (!isDcrPanel) return 0;
+  
+  switch (stateSubsidyRule) {
+    case &#39;S1&#39;: return 0; // No subsidy
+    
+    case &#39;S2&#39;: // Tiered subsidy
+      return capacityKW &lt;= 5 
+        ? capacityKW * 2000 
+        : 10000;
+    
+    case &#39;S3&#39;: // Higher tiered subsidy
+      return capacityKW &lt;= 2 
+        ? capacityKW * 15000 
+        : 30000;
+    
+    default: return 0;
+  }
+};
+
+Final Price Calculation
+export const calculateFinalPrice = (
+  systemPrice: number,
+  centralSubsidy: number,
+  stateSubsidy: number
+): { totalSubsidy: number; finalPrice: number } =&gt; {
+  const totalSubsidy = centralSubsidy + stateSubsidy;
+  const finalPrice = Math.max(0, systemPrice - totalSubsidy);
+  
+  return { totalSubsidy, finalPrice };
+};
+
+Role-Based Access Control
+Permission Model
+// Roles with draft access
+const DRAFT_ALLOWED_ROLES: UserRole[] = [&#39;admin&#39;, &#39;kam&#39;];
+
+// Permission functions
+export const canAccessDrafts = (userRole: UserRole): boolean =&gt; {
+  return DRAFT_ALLOWED_ROLES.includes(userRole);
+};
+
+export const canAccessQuotationStatus = (
+  userRole: UserRole, 
+  status: QuotationStatus
+): boolean =&gt; {
+  if (status === &#39;Draft&#39;) {
+    return canAccessDrafts(userRole);
+  }
+  return true; // Other statuses accessible to all
+};
+
+API Integration
+Role permissions are enforced at multiple levels:
+
+Route level: ProtectedRoute blocks /quotations for CP/Customer
+Component level: UI elements hidden based on role
+API level: RTK Query mutations check permissions
+Server level: Backend validates roles (mocked in tests)
+
+Usage Examples
+Basic Wizard Usage
+import { QuotationWizard } from &#39;../components/quotation/QuotationWizard&#39;;
+
+function CreateQuotationPage() {
+  const handleComplete = (quotation: Quotation) =&gt; {
+    console.log(&#39;Quotation created:&#39;, quotation.quotationId);
+    navigate(&#39;/quotations&#39;);
+  };
+
+  const handleCancel = () =&gt; {
+    navigate(&#39;/quotations&#39;);
+  };
+
+  return (
+    &lt;QuotationWizard
+      onComplete={handleComplete}
+      onCancel={handleCancel}
+    /&gt;
+  );
+}
+
+Resume Draft
+function ResumeQuotationPage() {
+  const { draftId } = useParams();
+  
+  return (
+    &lt;QuotationWizard
+      resumeQuotationId={draftId}
+      onComplete={handleComplete}
+      onCancel={handleCancel}
+    /&gt;
+  );
+}
+
+Custom Hook Usage
+function CustomWizardStep() {
+  const { state, actions, computed } = useQuotationWizard();
+  
+  const handleSystemChange = (data: Partial&lt;SystemRequirementsData&gt;) =&gt; {
+    actions.updateSystemRequirements(data);
+  };
+  
+  return (
+    &lt;div&gt;
+      &lt;h2&gt;System Requirements&lt;/h2&gt;
+      &lt;input
+        value={state.systemRequirements.systemKW}
+        onChange={(e) =&gt; handleSystemChange({
+          systemKW: parseFloat(e.target.value) || 0
+        })}
+      /&gt;
+      
+      {computed.pricing &amp;&amp; (
+        &lt;div&gt;Final Price: ₹{computed.pricing.finalPrice}&lt;/div&gt;
+      )}
+      
+      &lt;button 
+        onClick={actions.saveDraft}
+        disabled={!computed.canSave}
+      &gt;
+        Save Draft
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+Integration Points
+API Endpoints
+The wizard integrates with these API endpoints:
+// RTK Query endpoints
+const quotationEndpoints = {
+  getQuotations: builder.query&lt;QuotationListResponse, QuotationQuery&gt;({...}),
+  createQuotation: builder.mutation&lt;QuotationResponse, QuotationCreatePayload&gt;({...}),
+  updateQuotation: builder.mutation&lt;QuotationResponse, UpdatePayload&gt;({...}),
+  shareQuotation: builder.mutation&lt;void, string&gt;({...}),
+};
+
+Master Data Dependencies
+The wizard requires master data from these sources:
+
+States &amp; DISCOMs: Geographic and utility information
+Panels: Available solar panel specifications
+Inverters: Compatible inverter models
+Fee Structures: Installation and regulatory fees
+Currently mocked via MSW for development and testing.
+
+External Services
+PDF Generation: Server-side PDF creation for quotations
+Email Service: SendGrid integration for sharing quotations
+File Storage: Azure Blob storage for PDF archival
+
+Testing Strategy
+
+Unit Tests
+Pricing utilities: &gt;90% coverage with edge cases
+Wizard hook: State management and validation logic
+Draft operations: Save, load, and expiration handling
+
+Integration Tests
+Component integration: Wizard steps working together
+API integration: RTK Query endpoint interactions
+Role permissions: Access control enforcement
+
+E2E Tests
+Complete workflow: Create → Draft → Resume → Share
+Accessibility: WCAG 2.1 AA compliance
+Error handling: Network failures, validation errors
+
+Performance Considerations
+Bundle Size
+
+Quotation wizard adds approximately 45kB gzipped to the bundle:
+Core wizard logic: ~15kB
+Step components: ~20kB
+Utility functions: ~5kB
+Type definitions: ~5kB
+
+Runtime Performance
+
+Memoized calculations: Pricing updates only when dependencies change
+Throttled auto-save: Prevents excessive API calls
+Lazy loading: Step components loaded on demand
+Virtual scrolling: For large quotation lists
+
+Memory Management
+Immutable updates: Using Immer for predictable state changes
+Cleanup effects: Auto-save timers properly cleared
+Cache management: RTK Query handles API response caching
+
+
+### NEW: PDF Generation &amp; Sharing 🆕
+
+#### PDF Generation Workflow
+Quotations automatically generate immutable PDF documents when finalized:
+
+1. **Auto-Generation**: PDFs created when quotation status becomes &quot;Created&quot;
+2. **Preview Modal**: Admin/KAM can preview PDFs before sharing
+3. **Secure Storage**: PDFs stored in Azure Blob with 5-minute SAS tokens
+4. **Immutable Documents**: PDFs locked after sharing to prevent changes
+
+#### PDF Preview Integration
+```typescript
+import { QuotationPdfPreviewModal } from &#39;../components/quotation/QuotationPdfPreviewModal&#39;;
+
+const QuotationList = () =&gt; {
+  const [pdfPreview, setPdfPreview] = useState({ open: false, quotationId: null });
+
+  return (
+    &lt;&gt;
+      &lt;QuotationGrid 
+        onPreviewPdf={(quotation) =&gt; 
+          setPdfPreview({ open: true, quotationId: quotation.id })
+        }
+      /&gt;
+      
+      &lt;QuotationPdfPreviewModal
+        open={pdfPreview.open}
+        quotationId={pdfPreview.quotationId}
+        onClose={() =&gt; setPdfPreview({ open: false, quotationId: null })}
+      /&gt;
+    &lt;/&gt;
+  );
+};
+</code></pre>
+<p>Sharing Workflow
+Enhanced quotation sharing with customer visibility:
+// Share quotation with customer
+const { shareQuotation, isSharing } = useQuotationShare({
+  onSuccess: (quotation) =&gt; {
+    console.log(&#39;Quotation shared:&#39;, quotation.quotationId);
+    // Customer can now view quotation in their app
+  }
+});</p>
+<p>// Share validates business rules automatically
+await shareQuotation(quotation); // Checks for existing final quotations</p>
+<p>Wizard Lock System
+Shared and accepted quotations become read-only:</p>
+<p>// Wizard automatically detects locked status
+&lt;QuotationWizard
+  quotation={quotation}
+  readOnly={quotation.status === &#39;Shared&#39; || quotation.status === &#39;Accepted&#39;}
+/&gt;</p>
+<p>// Lock state utility
+import { isQuotationLocked } from &#39;../utils/quotation&#39;;</p>
+<p>const isLocked = isQuotationLocked(quotation.status); // true for Shared/Accepted/Rejected</p>
+<pre><code class="language-markdown">
+#### NEW: PDF &amp; Sharing Endpoints 🆕
+
+**GET `/api/v1/quotations/{id}/pdf`**
+
+Retrieves secure PDF download URL with temporary access.
+
+Response:
+```typescript
+interface QuotationPdfResponse {
+  success: boolean;
+  data: {
+    pdfUrl: string;     // Temporary SAS URL (5min expiry)
+    expiresAt: string;  // ISO timestamp
+  };
+}
+
+PATCH /api/v1/quotations/{id}/share
+
+Shares quotation with customer and locks for editing.
+
+Request: {}
+
+Response:
+interface ShareResponse {
+  success: boolean;
+  data: {
+    quotationId: string;
+    status: &#39;Shared&#39;;
+    sharedWithCustomer: true;
+    sharedAt: string;
+    // ... other quotation fields
+  };
+}
+
+```markdown
+
+#### useQuotationShare
+Hook for sharing quotations with validation and error handling.
+
+```typescript
+const {
+  shareQuotation,
+  isSharing
+} = useQuotationShare({
+  onSuccess: (quotation) =&gt; console.log(&#39;Shared:&#39;, quotation.quotationId),
+  onError: (error) =&gt; console.error(&#39;Share failed:&#39;, error.message)
+});
+
+// Usage
+await shareQuotation(quotation); // Validates and shares
+
+#### useQuotationShare
+Hook for sharing quotations with validation and error handling.
+
+```typescript
+const {
+  shareQuotation,
+  isSharing
+} = useQuotationShare({
+  onSuccess: (quotation) =&gt; console.log(&#39;Shared:&#39;, quotation.quotationId),
+  onError: (error) =&gt; console.error(&#39;Share failed:&#39;, error.message)
+});
+
+// Usage
+await shareQuotation(quotation); // Validates and shares
+</code></pre>
+<p>useSasService
+Hook for secure document URL management.</p>
+<p>const { getDownloadUrl, getUploadUrl } = useSasService();</p>
+<p>// Get PDF download URL
+const { url, expiresAt } = await getDownloadUrl(documentId);</p>
+<pre><code class="language-markdown">
+### Quotation Status Utilities
+
+#### Lock State Management
+import { isQuotationLocked, canShareQuotation, getQuotationActions } from &#39;../utils/quotation&#39;;
+
+// Check if quotation is locked (read-only)
+const isLocked = isQuotationLocked(&#39;Shared&#39;); // true
+
+// Check if quotation can be shared
+const canShare = canShareQuotation(&#39;Created&#39;, false); // true
+
+// Get available actions for quotation
+const actions = getQuotationActions(&#39;Shared&#39;, true);
+// Returns: { canEdit: false, canShare: false, canView: true, isLocked: true }
+
+Audit Log Integration
+Quotation actions automatically create audit log entries:
+
+// Audit log entries created for:
+const auditActions = [
+  &#39;QUOTE SHARED&#39;,      // When quotation shared with customer
+  &#39;QUOTE CREATED&#39;,     // When quotation finalized
+  &#39;QUOTE ACCEPTED&#39;,    // When customer accepts
+  &#39;QUOTE REJECTED&#39;,    // When customer rejects
+];
+
+// Visible in Settings → Audit Log with success styling
+</code></pre>
+
+</div>
+</body>
+</html>

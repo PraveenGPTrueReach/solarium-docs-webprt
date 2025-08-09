@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>README.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Solarium Web Portal</h1>
+<p>A comprehensive lead management platform for solar product sales, built with React, TypeScript, and Material-UI.</p>
+<h2>🌟 Features</h2>
+<h3>Core Functionality</h3>
+<ul>
+<li><strong>Lead Management</strong>: Capture and track leads from multiple channels</li>
+<li><strong>Quotation System</strong>: Generate and manage solar system quotations</li>
+<li><strong>Commission Tracking</strong>: Monitor channel partner commissions</li>
+<li><strong>User Management</strong>: Role-based access control (Admin, KAM, CP, Customer)</li>
+<li><strong>Territory Management</strong>: Geographic territory-based data filtering</li>
+<li><strong>Settings Management</strong>: Real-time system configuration and feature flags</li>
+</ul>
+<h3>Technology Stack</h3>
+<ul>
+<li><strong>Frontend</strong>: React 18, TypeScript, Material-UI 5</li>
+<li><strong>State Management</strong>: Redux Toolkit, RTK Query</li>
+<li><strong>Routing</strong>: React Router 6</li>
+<li><strong>Authentication</strong>: JWT with refresh tokens</li>
+<li><strong>Testing</strong>: Vitest, Testing Library, MSW</li>
+<li><strong>Build</strong>: Vite, ESLint, Prettier</li>
+</ul>
+<h3>Customer Management Module</h3>
+<p>The Customer Management module provides comprehensive customer lifecycle management with KYC document approval workflows:</p>
+<ul>
+<li><strong>Customer Grid</strong>: Paginated, filterable customer list with territory-based access control</li>
+<li><strong>KYC Document Management</strong>: Approve/reject KYC documents with audit trail</li>
+<li><strong>Territory Access Control</strong>: KAM users see only customers in assigned territories</li>
+<li><strong>Document Viewer</strong>: Reusable DocCard component for PDF/image preview with secure SAS tokens</li>
+<li><strong>Bulk Operations</strong>: Future-ready for bulk customer operations</li>
+<li><strong>Performance Optimized</strong>: Virtualized grid handles 1000+ customers with &lt;2s render time</li>
+</ul>
+<h4>Components Reused</h4>
+<ul>
+<li><code>DocCard</code> component: Originally built for lead attachments, now reused for KYC document display</li>
+<li><code>BulkActionToolbar</code> pattern: Consistent with leads module for future bulk operations</li>
+<li><code>Territory filtering</code>: Shared utility across all modules for access</li>
+</ul>
+<h3>NEW: Quotation Management System ✨</h3>
+<ul>
+<li><p>📋 <strong>7-Step Quotation Wizard</strong></p>
+<ul>
+<li>Customer selection with lead integration</li>
+<li>System requirements configuration</li>
+<li>Solar panel and inverter selection</li>
+<li>Bill of Materials (BOM) configuration</li>
+<li>Dealer pricing and margins</li>
+<li>Real-time pricing with subsidy calculations</li>
+<li>Comprehensive review and submission</li>
+</ul>
+</li>
+<li><p>💾 <strong>Advanced Draft Management</strong></p>
+<ul>
+<li>Auto-save every 30 seconds</li>
+<li>Manual save with status feedback</li>
+<li>Resume capability with complete state restoration</li>
+<li>Draft expiration handling (24 hours)</li>
+<li>Role-based draft access (Admin/KAM only)</li>
+</ul>
+</li>
+<li><p>💰 <strong>Intelligent Pricing Engine</strong></p>
+<ul>
+<li>Central subsidy calculation (capacity-based tiers)</li>
+<li>State subsidy rules (S1/S2/S3) with DCR requirements</li>
+<li>Hardware cost calculation with inflation</li>
+<li>Dealer add-on configuration (₹0-2000/kW)</li>
+<li>Final price with subsidy deductions</li>
+</ul>
+</li>
+<li><p>🔐 <strong>Role-Based Access Control</strong></p>
+<ul>
+<li>Admin/KAM: Full quotation management</li>
+<li>CP/Customer: Restricted from draft operations</li>
+<li>Route-level and API-level protection</li>
+<li>Conditional UI rendering</li>
+</ul>
+</li>
+<li><p>♿ <strong>Accessibility &amp; Performance</strong></p>
+<ul>
+<li>WCAG 2.1 AA compliant</li>
+<li>Virtualized large data sets</li>
+<li>Lazy-loaded components</li>
+<li>Real-time price preview</li>
+</ul>
+</li>
+<li><p>📄 <strong>PDF Generation &amp; Preview</strong></p>
+<ul>
+<li>Auto-generate immutable PDF documents for finalized quotations</li>
+<li>Secure preview modal with PDF.js integration  </li>
+<li>Temporary SAS URLs with 5-minute expiry for security</li>
+<li>Download functionality with proper filename handling</li>
+<li>Error handling for missing or invalid PDFs</li>
+</ul>
+</li>
+<li><p>🔗 <strong>Advanced Sharing System</strong></p>
+<ul>
+<li>One-click sharing with customers via secure links</li>
+<li>Business rule validation (prevents duplicate final quotations)</li>
+<li>Share status tracking with timestamps and audit trail</li>
+<li>Customer acceptance workflow integration</li>
+<li>Optimistic UI updates with rollback on failure</li>
+</ul>
+</li>
+<li><p>🔒 <strong>Quotation Locking &amp; Security</strong>  </p>
+<ul>
+<li>Automatic lock after sharing to prevent unauthorized changes</li>
+<li>Read-only wizard mode for shared/accepted quotations</li>
+<li>Visual lock indicators and status chips</li>
+<li>Role-based share permissions with territory validation</li>
+<li>Comprehensive audit logging for all quotation actions</li>
+</ul>
+</li>
+</ul>
+<h3>Technical Excellence</h3>
+<ul>
+<li>🧪 <strong>Testing</strong>: &gt;85% code coverage with unit, integration, and E2E tests</li>
+<li>🏗️ <strong>Architecture</strong>: Redux Toolkit, RTK Query, React Context patterns</li>
+<li>📱 <strong>Responsive</strong>: Mobile-first design with progressive enhancement</li>
+<li>🔍 <strong>TypeScript</strong>: Strict type safety with exact optional properties</li>
+<li>🚀 <strong>Performance</strong>: Bundle size monitoring, code splitting, optimization</li>
+<li>📄 <strong>Document Management</strong>: Secure PDF generation, preview, and sharing with SAS tokens</li>
+<li>🔐 <strong>Business Rule Enforcement</strong>: Automatic validation and conflict prevention</li>
+<li>📊 <strong>Audit Trail</strong>: Complete action logging for compliance and debugging</li>
+</ul>
+<h2>Quick Start</h2>
+<h3>Quotation Management</h3>
+<h1>Preview quotation PDF</h1>
+<p>Click PDF icon on any non-draft quotation → Modal opens with PDF preview</p>
+<h1>Share with customer</h1>
+<p>Click &quot;Share&quot; button on Created quotations → Customer receives access</p>
+<h1>View audit logs</h1>
+<p>Navigate to Settings → Audit Log → Filter for &quot;QUOTE SHARED&quot; entries</p>
+<pre><code class="language-bash"># Navigate to quotations
+http://localhost:3000/quotations
+
+# Create new quotation (Admin/KAM only)
+Click the + FAB button → Select lead → Complete 7-step wizard
+
+# Resume draft
+Click &quot;Resume&quot; on any draft quotation in the list
+
+# Share quotation
+Click &quot;Share&quot; on Created quotations to make visible to customers
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ LTS
+- npm 9+
+- Git 2.4+
+
+### Installation
+```bash
+# Clone repository
+git clone &lt;repository-url&gt;
+cd Solarium-CP-CU-APP
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+</code></pre>
+<h3>Environment Setup</h3>
+<p>Copy <code>.env.example</code> to <code>.env</code> and configure:</p>
+<pre><code class="language-bash"># API Configuration
+VITE_API_BASE_URL=https://api.solarium.com
+VITE_ENVIRONMENT=DEV
+
+# Authentication
+VITE_SESSION_TIMEOUT_MIN=30
+VITE_CRYPTO_SECRET=your-32-character-secret-key
+
+# Features
+VITE_ENABLE_DEBUG_TOOLS=true
+</code></pre>
+<h2>📋 Available Scripts</h2>
+<pre><code class="language-bash"># Development
+npm run dev              # Start development server
+npm run build           # Build for production
+npm run preview         # Preview production build
+
+# Code Quality
+npm run lint            # Run ESLint
+npm run lint:security   # Security vulnerability scan
+npm run format          # Format code with Prettier
+npm run type-check      # TypeScript type checking
+
+# Testing
+npm run test            # Run unit tests
+npm run test:coverage   # Test coverage report
+npm run test:security   # Security regression tests
+npm run test:ui         # Visual test runner
+</code></pre>
+<h2>🏗️ Architecture</h2>
+<h3>Project Structure</h3>
+<pre><code>src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Base UI components (buttons, inputs)
+│   ├── dashboard/      # Dashboard-specific components
+│   ├── settings/       # Settings management components
+│   └── error/          # Error handling components
+├── pages/              # Route-level page components
+├── hooks/              # Custom React hooks
+├── store/              # Redux store configuration
+│   ├── slices/         # Redux slices
+│   └── middleware/     # Custom middleware
+├── api/                # RTK Query API definitions
+├── utils/              # Utility functions
+├── types/              # TypeScript type definitions
+└── routes/             # React Router configuration
+</code></pre>
+<h3>State Management</h3>
+<ul>
+<li><strong>Redux Toolkit</strong>: Core state management</li>
+<li><strong>RTK Query</strong>: Server state and caching</li>
+<li><strong>Redux Persist</strong>: Encrypted local persistence</li>
+<li><strong>React Context</strong>: Feature flags and UI state</li>
+</ul>
+<h3>Security Features</h3>
+<ul>
+<li><strong>Encrypted Storage</strong>: AES-256 encryption for persisted data</li>
+<li><strong>JWT Authentication</strong>: Secure token-based authentication</li>
+<li><strong>Role-Based Access</strong>: Granular permission system</li>
+<li><strong>CSP Compliance</strong>: Content Security Policy adherent</li>
+<li><strong>Input Validation</strong>: Client and server-side validation</li>
+</ul>
+<h2>🎛️ Settings Management</h2>
+<p>The Settings Management module provides administrators with comprehensive system configuration capabilities:</p>
+<h3>Key Features</h3>
+<ul>
+<li><strong>Real-time Configuration</strong>: Update settings without application restart</li>
+<li><strong>Feature Flags</strong>: Toggle application features dynamically</li>
+<li><strong>Audit Trail</strong>: Complete change history with user attribution</li>
+<li><strong>Validation</strong>: Input validation with immediate feedback</li>
+<li><strong>Access Control</strong>: Admin-only access with role enforcement</li>
+</ul>
+<h3>Configuration Categories</h3>
+<h4>General Settings</h4>
+<ul>
+<li>Session timeout (5-1440 minutes)</li>
+<li>Token expiry (15-4320 minutes)</li>
+<li>Notification preferences</li>
+</ul>
+<h4>Feature Flags</h4>
+<pre><code class="language-typescript">{
+  &quot;ADVANCED_REPORTING&quot;: boolean,    // Enable advanced analytics
+  &quot;ANALYTICS&quot;: boolean,             // Usage tracking
+  &quot;DEBUG_MODE&quot;: boolean,            // Debug information (restricted)
+  &quot;BULK_OPERATIONS&quot;: boolean        // Bulk data operations
+}
+</code></pre>
+<h4>Thresholds</h4>
+<pre><code class="language-typescript">{
+  &quot;MAX_LEADS_PER_PAGE&quot;: number,     // Pagination limits
+  &quot;SESSION_WARNING_MIN&quot;: number,    // Session warning timing
+  &quot;MAX_FILE_SIZE_MB&quot;: number        // Upload limits
+}
+</code></pre>
+<h3>Usage Example</h3>
+<pre><code class="language-typescript">import { useUpdateSettingsMutation } from &#39;../api/endpoints/settingsEndpoints&#39;;
+
+const [updateSettings] = useUpdateSettingsMutation();
+
+const handleSave = async () =&gt; {
+  await updateSettings({
+    sessionTimeoutMin: 45,
+    featureFlags: {
+      ADVANCED_REPORTING: true
+    }
+  });
+};
+</code></pre>
+<h3>API Endpoints</h3>
+<ul>
+<li><code>GET /api/v1/settings</code> - Retrieve current settings</li>
+<li><code>PATCH /api/v1/settings</code> - Update settings (Admin only)</li>
+<li><code>GET /api/v1/settings/audit</code> - Audit log with pagination</li>
+</ul>
+<h2>🔐 Authentication &amp; Authorization</h2>
+<h3>User Roles</h3>
+<ul>
+<li><strong>Admin</strong>: Full system access, user management, settings</li>
+<li><strong>KAM (Key Account Manager)</strong>: Territory-based lead management</li>
+<li><strong>CP (Channel Partner)</strong>: Lead creation and quotation generation</li>
+<li><strong>Customer</strong>: Self-service portal access</li>
+</ul>
+<h3>Territory-Based Access</h3>
+<p>Users can be assigned to specific territories:</p>
+<pre><code class="language-typescript">type Territory = &#39;North&#39; | &#39;South&#39; | &#39;East&#39; | &#39;West&#39; | &#39;Central&#39; | 
+                &#39;Northeast&#39; | &#39;Northwest&#39; | &#39;Southeast&#39; | &#39;Southwest&#39;;
+</code></pre>
+<p>Data filtering automatically applies based on user territories.</p>
+<h3>Permission System</h3>
+<pre><code class="language-typescript">type Permission = 
+  | &#39;leads:read&#39; | &#39;leads:write&#39; | &#39;leads:delete&#39;
+  | &#39;quotations:read&#39; | &#39;quotations:write&#39; | &#39;quotations:approve&#39;
+  | &#39;settings:read&#39; | &#39;settings:write&#39;
+  | &#39;users:read&#39; | &#39;users:write&#39; | &#39;users:delete&#39;;
+</code></pre>
+<h2>🧪 Testing</h2>
+<h3>Test Coverage Requirements</h3>
+<ul>
+<li><strong>Overall</strong>: ≥80% coverage</li>
+<li><strong>Business Logic</strong>: ≥85% coverage</li>
+<li><strong>API Endpoints</strong>: ≥80% coverage</li>
+<li><strong>Components</strong>: ≥75% coverage</li>
+</ul>
+<h3>Testing Strategy</h3>
+<pre><code class="language-bash"># Unit Tests
+npm run test src/components/
+npm run test src/hooks/
+npm run test src/utils/
+
+# Integration Tests
+npm run test src/__tests__/integration/
+
+# E2E Tests
+npm run test src/__tests__/e2e/
+
+# Security Tests
+npm run test:security
+</code></pre>
+<h3>Test Categories</h3>
+<ul>
+<li><strong>Unit Tests</strong>: Component rendering, hook functionality, utility functions</li>
+<li><strong>Integration Tests</strong>: API communication, state management, user workflows</li>
+<li><strong>E2E Tests</strong>: Complete user journeys across multiple components</li>
+<li><strong>Security Tests</strong>: Access control, input validation, vulnerability scanning</li>
+</ul>
+<h2>🔒 Security</h2>
+<h3>Security Measures</h3>
+<ul>
+<li><strong>Content Security Policy</strong>: Strict CSP headers</li>
+<li><strong>Input Sanitization</strong>: XSS prevention</li>
+<li><strong>CSRF Protection</strong>: Cross-site request forgery prevention</li>
+<li><strong>Rate Limiting</strong>: API abuse prevention</li>
+<li><strong>Audit Logging</strong>: Security event tracking</li>
+</ul>
+<h3>Security Testing</h3>
+<pre><code class="language-bash"># Run security scan
+npm run lint:security
+
+# Test access controls
+npm run test src/routes/__tests__/
+npm run test src/api/__tests__/security/
+
+# CSP compliance check
+npm run test tests/security/
+</code></pre>
+<h2>📊 Performance</h2>
+<h3>Performance Optimizations</h3>
+<ul>
+<li><strong>Code Splitting</strong>: Lazy loading with React.lazy</li>
+<li><strong>Caching</strong>: RTK Query automatic caching</li>
+<li><strong>Virtualization</strong>: Large list rendering optimization</li>
+<li><strong>Memoization</strong>: Expensive calculation caching</li>
+<li><strong>Bundle Optimization</strong>: Tree shaking and minification</li>
+</ul>
+<h3>Performance Monitoring</h3>
+<pre><code class="language-typescript">// Development performance utilities
+if (process.env.NODE_ENV === &#39;development&#39;) {
+  // React DevTools Profiler
+  import(&#39;react-dom/profiling&#39;);
+  
+  // Performance measurements
+  performance.mark(&#39;app-start&#39;);
+}
+</code></pre>
+<h2>🌐 API Integration</h2>
+<h3>RTK Query Configuration</h3>
+<pre><code class="language-typescript">// Base API configuration
+const baseApi = createApi({
+  reducerPath: &#39;api&#39;,
+  baseQuery: enhancedFetchBaseQuery,
+  tagTypes: [&#39;Settings&#39;, &#39;User&#39;, &#39;Lead&#39;, &#39;Quotation&#39;],
+  endpoints: () =&gt; ({}),
+});
+
+// Feature-specific endpoints
+export const settingsApi = baseApi.injectEndpoints({
+  endpoints: (builder) =&gt; ({
+    getSettings: builder.query&lt;SystemSettings, void&gt;(),
+    updateSettings: builder.mutation&lt;SystemSettings, Partial&lt;SystemSettings&gt;&gt;(),
+  }),
+});
+</code></pre>
+<h3>Error Handling</h3>
+<ul>
+<li><strong>Automatic Retry</strong>: Failed requests with exponential backoff</li>
+<li><strong>Token Refresh</strong>: Automatic JWT token renewal</li>
+<li><strong>Global Error Handling</strong>: Centralized error management</li>
+<li><strong>User Feedback</strong>: Toast notifications for errors and success</li>
+</ul>
+<h2>🚀 Deployment</h2>
+<h3>Build Configuration</h3>
+<pre><code class="language-bash"># Production build
+npm run build
+
+# Build verification
+npm run preview
+npm run test:coverage
+npm run lint:security
+</code></pre>
+<h3>Environment Variables</h3>
+<pre><code class="language-bash"># Production environment
+VITE_API_BASE_URL=https://api.solarium.com
+VITE_ENVIRONMENT=PROD
+VITE_SESSION_TIMEOUT_MIN=30
+VITE_CRYPTO_SECRET=production-secret-key
+</code></pre>
+<h3>Docker Deployment</h3>
+<pre><code class="language-dockerfile">FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD [&quot;npm&quot;, &quot;run&quot;, &quot;preview&quot;]
+</code></pre>
+<h2>📈 Monitoring</h2>
+<h3>Application Monitoring</h3>
+<ul>
+<li><strong>Error Tracking</strong>: Global error boundary with reporting</li>
+<li><strong>Performance Metrics</strong>: Core Web Vitals monitoring</li>
+<li><strong>User Analytics</strong>: Feature usage tracking (when enabled)</li>
+<li><strong>API Monitoring</strong>: Request/response time tracking</li>
+</ul>
+<h3>Development Tools</h3>
+<pre><code class="language-typescript">// Debug utilities (development only)
+window.__APP_DEBUG__ = {
+  store: store.getState(),
+  api: apiSlice.util,
+  performance: performance.getEntriesByType(&#39;navigation&#39;),
+};
+</code></pre>
+<h2>🤝 Contributing</h2>
+<h3>Development Workflow</h3>
+<ol>
+<li>Create feature branch: <code>feat/TASK-ID-description</code></li>
+<li>Implement changes with tests</li>
+<li>Run quality checks: <code>npm run lint &amp;&amp; npm run test</code></li>
+<li>Create pull request with detailed description</li>
+<li>Code review and approval</li>
+<li>Squash merge to main</li>
+</ol>
+<h3>Code Standards</h3>
+<ul>
+<li><strong>TypeScript</strong>: Strict mode enabled</li>
+<li><strong>ESLint</strong>: Security and best practices</li>
+<li><strong>Prettier</strong>: Consistent code formatting</li>
+<li><strong>Conventional Commits</strong>: Structured commit messages</li>
+</ul>
+<h3>Pull Request Checklist</h3>
+<ul>
+<li><input disabled="" type="checkbox"> All tests passing</li>
+<li><input disabled="" type="checkbox"> Code coverage ≥80%</li>
+<li><input disabled="" type="checkbox"> Security scan clean</li>
+<li><input disabled="" type="checkbox"> TypeScript errors resolved</li>
+<li><input disabled="" type="checkbox"> Documentation updated</li>
+<li><input disabled="" type="checkbox"> Manual testing completed</li>
+</ul>
+<h2>📚 Additional Documentation</h2>
+<ul>
+<li><a href="./SETTINGS.md">Settings Management Guide</a></li>
+<li><a href="./API_TERRITORY.md">API Territory Documentation</a></li>
+<li><a href="./TESTING.md">Testing Guidelines</a></li>
+<li><a href="./BUILD.md">Build Configuration</a></li>
+<li><a href="./QA_PIPELINE.md">QA Pipeline</a></li>
+</ul>
+<h2>🆘 Support</h2>
+<h3>Getting Help</h3>
+<ul>
+<li><strong>Documentation</strong>: Check relevant docs in <code>/docs</code> folder</li>
+<li><strong>Issues</strong>: Create GitHub issue with detailed description</li>
+<li><strong>Security</strong>: Report security issues privately</li>
+<li><strong>Features</strong>: Submit feature requests through proper channels</li>
+</ul>
+<h3>Common Issues</h3>
+<ol>
+<li><strong>Settings not loading</strong>: Verify admin role and authentication</li>
+<li><strong>Build failures</strong>: Check Node.js version and dependencies</li>
+<li><strong>Test failures</strong>: Ensure MSW handlers are properly configured</li>
+<li><strong>TypeScript errors</strong>: Run <code>npm run type-check</code> for detailed errors</li>
+</ol>
+<hr>
+<h2>📄 License</h2>
+<p>This project is proprietary software developed for Solarium Green Energy. All rights reserved.</p>
+<h2>🏷️ Version</h2>
+<p>Current Version: 2.1.0
+Last Updated: January 2024</p>
+<h2>Architecture Overview</h2>
+<h3>Technology Stack</h3>
+<ul>
+<li><strong>Frontend</strong>: React 18.2, TypeScript 5.2, Material-UI 5.14</li>
+<li><strong>State Management</strong>: Redux Toolkit 1.9.7 with RTK Query</li>
+<li><strong>Routing</strong>: React Router v6</li>
+<li><strong>Build Tool</strong>: Vite 4.5</li>
+<li><strong>Testing</strong>: Vitest + React Testing Library + jest-axe</li>
+<li><strong>Styling</strong>: Material-UI + CSS-in-JS (Emotion)</li>
+</ul>
+<h3>Project Structure</h3>
+<pre><code>src/
+├── components/          # Reusable UI components
+│   ├── dashboard/      # Dashboard-specific components
+│   ├── ui/             # Generic UI components
+│   ├── loading/        # Loading states and skeletons
+│   └── error/          # Error handling components
+├── pages/              # Route-level page components
+├── layout/             # Application layout components
+├── store/              # Redux store and slices
+├── api/                # RTK Query API endpoints
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+├── types/              # TypeScript type definitions
+└── contexts/           # React context providers
+</code></pre>
+<h2>Dashboard Module</h2>
+<h3>Overview</h3>
+<p>The Dashboard module provides the main landing page for authenticated Admin and KAM users, displaying key business metrics, recent activities, and quick navigation actions.</p>
+<h3>Components</h3>
+<h4>Dashboard Page (<code>src/pages/Dashboard.tsx</code>)</h4>
+<p>The main dashboard component that orchestrates data fetching and UI rendering.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Role-based metric display (Admin vs KAM)</li>
+<li>Real-time data loading with skeleton states</li>
+<li>Responsive grid layout (3/2/1 columns on lg/md/sm)</li>
+<li>Quick action navigation</li>
+<li>Error handling with retry functionality</li>
+<li>Accessibility compliance (WCAG 2.1 AA)</li>
+</ul>
+<p><strong>Props:</strong> None (uses Auth context for user data)</p>
+<p><strong>API Integration:</strong> Uses <code>useDashboardMetricsByRole</code> hook</p>
+<h4>PlaceholderCard (<code>src/components/dashboard/PlaceholderCard.tsx</code>)</h4>
+<p>Reusable placeholder widget for dashboard sections not yet implemented.</p>
+<p><strong>Props:</strong></p>
+<pre><code class="language-typescript">interface PlaceholderCardProps {
+  title: string;
+  subtitle?: string;
+  minHeight?: number; // Default: 200px
+}
+</code></pre>
+<h4>QuickActionTile (<code>src/components/dashboard/QuickActionTile.tsx</code>)</h4>
+<p>Individual action button for dashboard navigation.</p>
+<p><strong>Props:</strong></p>
+<pre><code class="language-typescript">interface QuickActionTileProps {
+  label: string;
+  icon: React.ReactElement;
+  onClick: () =&gt; void;
+}
+</code></pre>
+<h3>API Contracts</h3>
+<h4>Dashboard Metrics Endpoint</h4>
+<p><strong>GET <code>/api/v1/dashboard/metrics</code></strong></p>
+<p>Query Parameters:</p>
+<pre><code class="language-typescript">interface DashboardMetricsParams {
+  dateRange?: {
+    from?: string; // ISO date string
+    to?: string;   // ISO date string
+  };
+  includeDetails?: boolean; // Default: true
+  limit?: number;           // Default: 10
+}
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-typescript">interface DashboardMetrics {
+  // Basic metrics (all roles)
+  activeLeads: number;
+  pendingQuotations: number;
+  recentLeads: Array&lt;{
+    id: string;
+    customerName: string;
+    status: string;
+    createdAt: string;
+  }&gt;;
+
+  // Admin-only metrics
+  channelPartners?: number;
+  pendingCommissions?: number;
+  totalRevenue?: number;
+
+  // Activity data
+  recentActivities: Array&lt;{
+    id: string;
+    title: string;
+    description: string;
+    timestamp: string;
+    type: &#39;lead&#39; | &#39;quotation&#39; | &#39;commission&#39; | &#39;system&#39;;
+  }&gt;;
+
+  // Metadata
+  dateRange: {
+    from: string;
+    to: string;
+  };
+  lastUpdated: string;
+  refreshInterval?: number;
+}
+</code></pre>
+<p><strong>POST <code>/api/v1/dashboard/metrics/refresh</code></strong></p>
+<p>Triggers manual refresh of dashboard metrics.</p>
+<p>Response: Same as GET endpoint with updated timestamps.</p>
+<h3>Custom Hooks</h3>
+<h4>useDashboardMetrics</h4>
+<p>Main hook for dashboard metrics data management.</p>
+<pre><code class="language-typescript">const {
+  data,
+  isLoading,
+  isError,
+  error,
+  hasData,
+  lastUpdated,
+  metricsAge,
+  refetch,
+  refresh
+} = useDashboardMetrics(options);
+</code></pre>
+<p>Options:</p>
+<pre><code class="language-typescript">interface UseDashboardMetricsOptions {
+  params?: DashboardMetricsParams;
+  pollingInterval?: number;
+  skip?: boolean;
+  refetchOnMount?: boolean;
+  refetchOnFocus?: boolean;
+}
+</code></pre>
+<h4>useDashboardMetricsByRole</h4>
+<p>Convenience hook that automatically adjusts parameters based on user role.</p>
+<pre><code class="language-typescript">const metrics = useDashboardMetricsByRole(userRole);
+</code></pre>
+<ul>
+<li><strong>Admin</strong>: <code>includeDetails: true, limit: 20</code></li>
+<li><strong>KAM</strong>: <code>includeDetails: true, limit: 10</code></li>
+<li><strong>Other</strong>: <code>includeDetails: false, limit: 5</code></li>
+</ul>
+<h3>Caching Strategy</h3>
+<p>The dashboard uses RTK Query with the following caching approach:</p>
+<ul>
+<li><strong>Tag Type</strong>: <code>Analytics</code> (shared with other analytics endpoints)</li>
+<li><strong>Cache Duration</strong>: 60 seconds (baseApi default)</li>
+<li><strong>Invalidation</strong>: Manual refresh mutation invalidates <code>Analytics</code> tag</li>
+<li><strong>Polling</strong>: Optional with customizable intervals</li>
+</ul>
+<h3>Error Handling</h3>
+<p>Dashboard implements comprehensive error handling:</p>
+<ol>
+<li><strong>Network Errors</strong>: Shows retry button with graceful fallback</li>
+<li><strong>API Errors</strong>: Displays user-friendly error messages</li>
+<li><strong>Empty Data</strong>: Shows appropriate empty states</li>
+<li><strong>Loading States</strong>: Skeleton loading with minimum 1.5s visibility</li>
+</ol>
+<h3>Accessibility Features</h3>
+<ul>
+<li><strong>WCAG 2.1 AA Compliance</strong>: Verified with jest-axe</li>
+<li><strong>Keyboard Navigation</strong>: Full keyboard support</li>
+<li><strong>Screen Reader Support</strong>: Proper ARIA labels and landmarks</li>
+<li><strong>Color Contrast</strong>: Meets accessibility standards</li>
+<li><strong>Focus Management</strong>: Logical tab order and focus indicators</li>
+</ul>
+<h2>Navigation &amp; Layout</h2>
+<h3>Sidebar Navigation</h3>
+<p>Role-based navigation with secure filtering and state persistence.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Role-based menu items (Admin: 8 items, KAM: 5 items)</li>
+<li>Collapse state persistence via localStorage</li>
+<li>Responsive behavior (desktop/mobile)</li>
+<li>Accessibility compliance</li>
+<li>Security (forbidden items removed from DOM)</li>
+</ul>
+<h3>Protected Routes</h3>
+<p>Comprehensive route protection with security logging.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Authentication requirement</li>
+<li>Role-based access control</li>
+<li>Territory-based filtering (future)</li>
+<li>Custom permission checks</li>
+<li>Security audit logging</li>
+<li>Proper redirect flows</li>
+</ul>
+<h2>Development Guidelines</h2>
+<h3>Code Standards</h3>
+<ul>
+<li><strong>TypeScript</strong>: Strict mode enabled</li>
+<li><strong>ESLint</strong>: Security plugin enabled</li>
+<li><strong>Prettier</strong>: Consistent formatting</li>
+<li><strong>Testing</strong>: ≥80% coverage required</li>
+<li><strong>Accessibility</strong>: jest-axe validation</li>
+</ul>
+<h3>Testing Strategy</h3>
+<ul>
+<li><strong>Unit Tests</strong>: Component logic and hooks</li>
+<li><strong>Integration Tests</strong>: API and component interaction</li>
+<li><strong>Accessibility Tests</strong>: WCAG compliance</li>
+<li><strong>E2E Tests</strong>: User workflows (future)</li>
+</ul>
+<h3>Performance Considerations</h3>
+<ul>
+<li><strong>Code Splitting</strong>: Lazy loading for non-critical routes</li>
+<li><strong>Memoization</strong>: Expensive calculations and renders</li>
+<li><strong>API Caching</strong>: RTK Query with intelligent invalidation</li>
+<li><strong>Bundle Optimization</strong>: Tree shaking and dead code elimination</li>
+</ul>
+<h2>Deployment</h2>
+<h3>Environment Configuration</h3>
+<pre><code class="language-bash"># Required Environment Variables
+VITE_API_BASE_URL=https://api.solarium.com
+VITE_ENVIRONMENT=production
+VITE_SESSION_TIMEOUT_MIN=30
+VITE_CRYPTO_SECRET=&lt;32-character-secret&gt;
+</code></pre>
+<h3>Build Process</h3>
+<pre><code class="language-bash"># Development
+npm run dev
+
+# Production Build
+npm run build
+npm run preview
+
+# Testing
+npm run test
+npm run test:coverage
+npm run test:a11y
+</code></pre>
+<h3>Quality Gates</h3>
+<ul>
+<li><strong>Test Coverage</strong>: ≥80% overall, ≥70% per file</li>
+<li><strong>Accessibility</strong>: 0 violations on critical components</li>
+<li><strong>Security</strong>: ESLint security rules passing</li>
+<li><strong>Performance</strong>: Lighthouse score ≥90</li>
+</ul>
+<h2>API Integration</h2>
+<h3>Base Configuration</h3>
+<p>All API endpoints extend the base RTK Query configuration:</p>
+<ul>
+<li><strong>Base URL</strong>: Configurable via environment</li>
+<li><strong>Authentication</strong>: JWT token in Authorization header</li>
+<li><strong>Error Handling</strong>: Centralized error mapping</li>
+<li><strong>Retry Logic</strong>: Exponential backoff</li>
+<li><strong>Token Refresh</strong>: Automatic with mutex protection</li>
+</ul>
+<h3>Endpoint Patterns</h3>
+<pre><code class="language-typescript">// Standard query endpoint
+builder.query&lt;ResponseType, ParamsType&gt;({
+  query: (params) =&gt; ({
+    url: &#39;/endpoint&#39;,
+    method: &#39;GET&#39;,
+    params,
+  }),
+  providesTags: [&#39;TagName&#39;],
+  transformResponse: (response) =&gt; transformData(response),
+  transformErrorResponse: (error) =&gt; mapError(error),
+});
+</code></pre>
+<h2>Security</h2>
+<h3>Authentication &amp; Authorization</h3>
+<ul>
+<li><strong>JWT Tokens</strong>: Short-lived access tokens with refresh capability</li>
+<li><strong>Role-Based Access</strong>: Admin, KAM, CP, Customer roles</li>
+<li><strong>Route Protection</strong>: Comprehensive access control</li>
+<li><strong>Session Management</strong>: Automatic timeout and refresh</li>
+</ul>
+<h3>Data Security</h3>
+<ul>
+<li><strong>Encrypted Storage</strong>: AES-256 for sensitive data</li>
+<li><strong>HTTPS Only</strong>: All communication encrypted</li>
+<li><strong>Input Validation</strong>: Client and server-side validation</li>
+<li><strong>XSS Protection</strong>: CSP headers and sanitization</li>
+</ul>
+<h2>Monitoring &amp; Observability</h2>
+<h3>Logging</h3>
+<ul>
+<li><strong>Security Events</strong>: Access attempts and denials</li>
+<li><strong>Performance Metrics</strong>: API response times</li>
+<li><strong>Error Tracking</strong>: Client-side error reporting</li>
+<li><strong>User Analytics</strong>: Usage patterns and flows</li>
+</ul>
+<h3>Health Checks</h3>
+<ul>
+<li><strong>API Health</strong>: Endpoint availability monitoring</li>
+<li><strong>Client Health</strong>: Error rate and performance monitoring</li>
+<li><strong>Dependency Health</strong>: Third-party service status</li>
+</ul>
+<h2>Future Enhancements</h2>
+<h3>Planned Features</h3>
+<ul>
+<li><strong>Advanced Analytics</strong>: Business intelligence widgets</li>
+<li><strong>Real-time Updates</strong>: WebSocket integration</li>
+<li><strong>Offline Support</strong>: Progressive Web App features</li>
+<li><strong>Enhanced Security</strong>: Multi-factor authentication</li>
+<li><strong>Performance</strong>: Server-side rendering</li>
+</ul>
+<h3>Technical Debt</h3>
+<ul>
+<li><strong>Bundle Size</strong>: Optimize third-party dependencies</li>
+<li><strong>Test Coverage</strong>: Increase E2E test coverage</li>
+<li><strong>Documentation</strong>: API documentation automation</li>
+<li><strong>Performance</strong>: Implement virtual scrolling for large lists</li>
+</ul>
+<h2>Contributing</h2>
+<h3>Development Setup</h3>
+<ol>
+<li><strong>Prerequisites</strong>: Node.js 18 LTS, npm 9+</li>
+<li><strong>Installation</strong>: <code>npm install</code></li>
+<li><strong>Configuration</strong>: Copy <code>.env.example</code> to <code>.env.local</code></li>
+<li><strong>Development</strong>: <code>npm run dev</code></li>
+<li><strong>Testing</strong>: <code>npm run test</code></li>
+</ol>
+<h3>Code Review Checklist</h3>
+<ul>
+<li><input disabled="" type="checkbox"> TypeScript strict mode compliance</li>
+<li><input disabled="" type="checkbox"> Test coverage ≥80%</li>
+<li><input disabled="" type="checkbox"> Accessibility validation passed</li>
+<li><input disabled="" type="checkbox"> Security ESLint rules passed</li>
+<li><input disabled="" type="checkbox"> Performance impact assessed</li>
+<li><input disabled="" type="checkbox"> Documentation updated</li>
+</ul>
+<h3>Git Workflow</h3>
+<ul>
+<li><strong>Feature Branches</strong>: <code>feat/TASK-ID-description</code></li>
+<li><strong>Commit Messages</strong>: <code>TASK-ID: Brief description</code></li>
+<li><strong>Pull Requests</strong>: Required for all changes</li>
+<li><strong>Code Review</strong>: Minimum one approval required</li>
+</ul>
+<hr>
+<p>For detailed API documentation, see the individual endpoint files in <code>src/api/endpoints/</code>.
+For component usage examples, see the test files in <code>src/**/__tests__/</code>. </p>
+<h2>Feature Modules</h2>
+<h3>Support Ticket Desk</h3>
+<p>Complete customer support ticket management system with message threading and attachment support.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Ticket lifecycle management (create, update, close, reopen)</li>
+<li>Real-time message threading with optimistic updates</li>
+<li>File attachment preview via SAS integration</li>
+<li>Advanced filtering and search capabilities</li>
+<li>Performance optimization with virtual scrolling</li>
+<li>Comprehensive error handling and recovery</li>
+</ul>
+<p><strong>Components:</strong></p>
+<ul>
+<li><code>TicketGrid</code> - Main ticket list with sorting and pagination</li>
+<li><code>TicketFilters</code> - Advanced filtering controls</li>
+<li><code>TicketThreadDrawer</code> - Message thread viewer and reply interface</li>
+<li><code>TicketErrorBoundary</code> - Error handling and recovery</li>
+</ul>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li><a href="./TICKET_MODULE.md">Ticket Module Documentation</a></li>
+<li><a href="../src/components/ticket/stories/">Storybook Stories</a></li>
+<li><a href="./API_INTEGRATION.md">API Integration Guide</a></li>
+</ul>
+<p><strong>Testing:</strong></p>
+<ul>
+<li>Unit tests with 85%+ coverage</li>
+<li>Integration tests with MSW</li>
+<li>E2E tests with Cypress</li>
+<li>Accessibility testing with axe</li>
+<li>Visual regression testing with Chromatic</li>
+</ul>
+<pre><code class="language-markdown">## Services Catalog Module
+
+The Services Catalog module provides comprehensive service management capabilities for administrators.
+
+### Key Components
+- **ServiceGrid**: Virtualized service management interface
+- **ServiceFormDialog**: Service creation and editing forms
+- **ServicePreviewCard**: Customer app preview representation
+- **ServicePreviewModal**: Full-screen service preview
+
+### Documentation
+- [Services Module Guide](./SERVICES_MODULE.md) - Comprehensive module documentation
+- [Storybook Stories](../src/components/services/stories/) - Interactive component documentation
+- [API Integration](./SERVICES_API.md) - API endpoints and data flow
+
+### Features
+- Real-time service management
+- Image upload and preview
+- Advanced filtering and search
+- Accessibility compliance (WCAG 2.1 AA)
+- Mobile-responsive design
+- Comprehensive audit logging
+
+### Testing
+- Unit tests with 85%+ coverage
+- Integration tests with MSW mocking
+- E2E tests with Cypress
+- Accessibility testing with axe
+- Storybook visual testing
+
+## 📊 Reports &amp; Analytics Module
+
+The Reports module provides comprehensive lead analytics and KPI reporting with role-based access control and accessibility compliance.
+
+### Features
+
+- **Interactive KPI Dashboard**: Real-time lead status distribution with visual charts
+- **Advanced Filtering**: Date range and territory-based filtering
+- **CSV Export**: High-performance export with metadata embedding
+- **Role-Based Access**: Territory-restricted access for KAM users
+- **Full Accessibility**: WCAG 2.1 AA compliant with keyboard navigation
+- **Performance Optimized**: Sub-3-second export for 1000+ records
+
+### Quick Start
+
+#### Basic Usage
+
+```typescript
+// Navigate to reports page
+// URL: /reports (requires Admin or KAM role)
+
+// Import components for custom usage
+import { ReportFilters, useReportSummary, useReportCsvExport } from &#39;@/components/report&#39;;
+
+// Basic report data fetching
+const { data, isLoading, error } = useReportSummary({
+  dateFrom: &#39;2024-01-01&#39;,
+  dateTo: &#39;2024-01-31&#39;,
+  territories: &#39;north,south&#39;
+});
+
+// CSV export with filters
+const { handleExport } = useReportCsvExport({
+  filename: &#39;my-report&#39;,
+  onExportSuccess: (summary) =&gt; console.log(`Exported ${summary.totalRecords} records`)
+});
+// Custom filter component usage
+&lt;ReportFilters
+  value={{
+    dateFrom: new Date(&#39;2024-01-01&#39;),
+    dateTo: new Date(&#39;2024-01-31&#39;),
+    territories: [&#39;North&#39;, &#39;South&#39;]
+  }}
+  onChange={(filters) =&gt; {
+    // Handle filter changes
+    refetchReportData(filters);
+  }}
+  compact={false}
+  disabled={isLoading}
+/&gt;
+
+Architecture
+Component Structure
+src/
+├── pages/reports/
+│   ├── ReportsPage.tsx          # Main reports page
+│   └── index.ts                 # Barrel export
+├── components/report/
+│   ├── ReportFilters.tsx        # Filter controls
+│   └── index.ts                 # Component exports
+├── hooks/
+│   ├── useReportSummary.ts      # Data fetching hook
+│   └── useReportCsvExport.ts    # CSV export hook
+├── api/endpoints/
+│   └── reportEndpoints.ts       # RTK Query endpoints
+└── types/
+    └── report.types.ts          # TypeScript definitions
+
+
+API Endpoints
+| Endpoint | Method | Description | Access | |----------|--------|-------------|---------| | /api/v1/reports | GET | Fetch report summary | Admin, KAM |
+
+Query Parameters:
+
+dateFrom (required): Start date (YYYY-MM-DD)
+dateTo (required): End date (YYYY-MM-DD)
+territories (optional): Comma-separated territory list
+
+Response Format:
+{
+  &quot;statusCounts&quot;: {
+    &quot;New&quot;: 25,
+    &quot;Contacted&quot;: 18,
+    &quot;Qualified&quot;: 12
+  },
+  &quot;totalLeads&quot;: 55,
+  &quot;lastUpdated&quot;: &quot;2024-01-15T10:30:00.000Z&quot;
+}
+
+Territory-Based Security
+Access Control Model
+The Reports module implements strict territory-based access control:
+
+  Admin Users: Full access to all territories and data
+  KAM Users: Restricted to assigned territories only
+  Auto-filtering: KAM queries automatically filtered by user territories
+  403 Handling: Graceful access denied messaging for unauthorized requests
+
+Security Implementation:
+// Territory validation example
+const territoryAccess = getUserTerritoryAccess(user);
+
+// For KAM users, restrict territory selection
+const availableTerritories = territoryAccess.hasFullAccess 
+  ? ALL_TERRITORIES 
+  : territoryAccess.territories;
+
+// API automatically applies territory filtering
+const apiParams = {
+  dateFrom: &#39;2024-01-01&#39;,
+  dateTo: &#39;2024-01-31&#39;,
+  territories: user.role === &#39;admin&#39; ? undefined : user.territories.join(&#39;,&#39;)
+};
+
+Security Features
+  JWT-based Authentication: All requests require valid authentication
+  Role-based Authorization: Endpoint access controlled by user roles
+  Territory Scope Validation: Backend validates territory access rights
+  Audit Logging: All export activities are logged for compliance
+  Request Rate Limiting: Prevents abuse of export functionality
+
+  Accessibility Compliance
+WCAG 2.1 AA Features
+The Reports module is fully accessible and meets WCAG 2.1 AA standards:
+
+Keyboard Navigation:
+
+Full keyboard operability (Tab, Shift+Tab, Enter, Space, Arrow keys)
+Logical tab order through all interactive elements
+Visible focus indicators on all focusable elements
+Keyboard shortcuts: Ctrl+Shift+C (Clear filters)
+Screen Reader Support:
+
+Semantic HTML structure with proper landmarks
+ARIA labels and descriptions on all form controls
+Live regions for dynamic content updates (aria-live=&quot;polite&quot;)
+Table headers properly associated with data cells
+Form validation messages announced to assistive technology
+Visual Accessibility:
+
+High contrast color ratios (4.5:1 minimum)
+Scalable text up to 200% without horizontal scrolling
+Color not used as sole means of conveying information
+Focus indicators meet minimum visibility requirements
+
+Screen Reader Usage
+For screen reader users:
+
+Page Structure: Use heading navigation (H key) to jump between sections
+Filter Controls: Navigate by form elements (F key) or use Tab
+Data Table: Use table navigation (T key) and cell-by-cell reading
+Status Updates: Listen for live region announcements during filtering
+Export Function: Button clearly labeled with current data context
+
+Performance &amp; Export
+CSV Export Features
+Metadata Embedding: Filter criteria included as header comments
+Performance Optimized: Handles 1000+ records in under 3 seconds
+Custom Naming: Files named reports-YYYY-MM-DD.csv
+Progress Feedback: Real-time status updates during export
+Error Handling: Graceful fallback for export failures
+
+Performance Optimization
+Memoized Hooks: Prevent unnecessary re-renders
+Lazy Loading: Components loaded on-demand
+Efficient Queries: Optimized API calls with caching
+Memory Management: Automatic cleanup of large datasets
+</code></pre>
+
+</div>
+</body>
+</html>

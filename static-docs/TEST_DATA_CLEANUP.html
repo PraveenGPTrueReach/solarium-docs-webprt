@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TEST_DATA_CLEANUP.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Test Data Cleanup Guide</h1>
+<h2>Overview</h2>
+<p>The k6 test data cleanup utility removes test entities created during performance testing to prevent data pollution in staging environments.</p>
+<h2>Usage</h2>
+<h3>Basic Cleanup</h3>
+<pre><code class="language-bash"># Run cleanup
+npm run k6:cleanup
+
+# Preview cleanup (dry-run)
+npm run k6:cleanup:dry-run
+
+# Show cleanup statistics
+npm run k6:cleanup:stats
+
+Advanced Options
+# Custom concurrency (default: 5)
+node scripts/k6-cleanup.js --concurrency=10
+
+# Custom batch size (default: 50)
+node scripts/k6-cleanup.js --batch-size=100
+
+# Dry run mode
+node scripts/k6-cleanup.js --dry-run
+
+Test Entity Identification
+Prefixes Cleaned
+  k6-test-* - General test entities
+  k6-baseline-* - Baseline test entities
+  k6-stress-* - Stress test entities
+  k6-soak-* - Soak test entities
+  k6-soak600-* - 600 VU soak test entities
+Customer Names
+  K6 Test Customer*
+  K6 Stress Customer*
+  K6 Soak Customer*
+Notes Content
+  Any notes containing test prefixes
+
+Entity Types Cleaned
+Leads
+  Action: Archive (set status to &#39;Archived&#39;)
+  Fallback: Delete if archiving fails
+  API: PATCH /api/v1/leads/{id} or DELETE /api/v1/leads/{id}
+Quotations
+  Action: Archive (set status to &#39;Archived&#39;)
+  Fallback: Delete if archiving fails
+  API: PATCH /api/v1/quotations/{id} or DELETE /api/v1/quotations/{id}
+Customers
+  Action: Archive (set status to &#39;Archived&#39;)
+  Fallback: No deletion (usually not allowed)
+  API: PATCH /api/v1/customers/{id}
+Configuration
+Environment Variables
+  K6_BASE_URL=https://staging-api.solarium.com
+  K6_ADMIN_USER=admin_cleanup_user
+  K6_ADMIN_PASS=admin_cleanup_password
+Default Settings
+  Concurrency: 5 simultaneous operations
+  Batch Size: 50 entities per discovery batch
+  Retry Attempts: 3 with exponential backoff
+  Retry Delay: 1 second base delay
+
+CI/CD Integration
+
+Automatic Cleanup
+Cleanup runs automatically after each CI test:
+  After baseline tests
+  After stress tests
+  After soak tests
+  After monthly soak tests
+
+Manual Cleanup
+# Trigger cleanup in CI
+gh workflow run load-test.yml --field test_type=health
+# Cleanup runs automatically after test completion
+
+Safety Features
+Dry Run Mode
+
+npm run k6:cleanup:dry-run
+  Previews what would be cleaned
+  No actual changes made
+  Safe for auditing
+
+Error Handling
+  Continues on individual failures
+  Logs all errors with entity details
+  Provides comprehensive statistics
+  Never fails the entire CI build
+Concurrency Limits
+  Prevents server overload
+  Configurable based on API capacity
+  Default of 5 concurrent operations
+
+Monitoring &amp; Logging
+Console Output
+🧹 k6 Test Data Cleanup Utility
+================================
+🎯 Target Environment: https://staging-api.solarium.com
+🔄 Concurrency Limit: 5
+📦 Batch Size: 50
+🧪 Dry Run Mode: DISABLED
+
+🔧 Initializing cleanup utility...
+🔐 Authenticating as admin user...
+✅ Authentication successful
+
+🔍 Discovering test entities...
+📋 Found 25 test leads
+📄 Found 15 test quotations
+👥 Found 5 test customers
+📊 Total test entities found: 45
+
+🧹 Starting entity cleanup...
+✅ Archived lead: k6-test-lead-123
+✅ Archived quotation: k6-stress-quote-456
+⚠️  Failed to clean up customer: permission denied
+
+📊 CLEANUP SUMMARY
+==================
+⏱️  Duration: 45 seconds
+🔄 Mode: LIVE CLEANUP
+
+📋 Leads:     Found: 25, Cleaned: 24, Failed: 1
+📄 Quotations: Found: 15, Cleaned: 15, Failed: 0
+👥 Customers:  Found: 5,  Cleaned: 4,  Failed: 1
+
+📊 Total Processed: 45
+✅ Total Cleaned: 43
+❌ Total Failed: 2
+📈 Success Rate: 95.6%
+
+Artifacts
+  Cleanup Stats: artifacts/cleanup-stats-{date}.json
+  CI Logs: Available in GitHub Actions logs
+  Error Details: Individual failure logging
+
+Troubleshooting
+Common Issues
+Authentication Failures
+# Check credentials
+echo $K6_ADMIN_USER
+echo $K6_ADMIN_PASS
+
+# Test authentication manually
+curl -X POST https://staging-api.solarium.com/api/v1/auth/login \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;email&quot;:&quot;&#39;$K6_ADMIN_USER&#39;&quot;,&quot;password&quot;:&quot;&#39;$K6_ADMIN_PASS&#39;&quot;}&#39;
+
+High Failure Rates
+# Reduce concurrency
+node scripts/k6-cleanup.js --concurrency=2
+
+# Check server capacity
+# Review API rate limits
+
+Permission Errors
+# Verify admin user has delete/archive permissions
+# Check API endpoint availability
+# Review server logs for detailed errors
+
+Debug Mode
+# Enable verbose logging
+DEBUG=cleanup:* node scripts/k6-cleanup.js --dry-run
+
+Best Practices
+Regular Cleanup
+  Run after each test execution
+  Monitor cleanup success rates
+  Review failed entities periodically
+Staging Environment
+  Always test cleanup in staging first
+  Never run against production
+  Verify admin credentials are staging-only
+Performance
+  Adjust concurrency based on API capacity
+  Use appropriate batch sizes
+  Monitor server resources during cleanup
+Data Safety
+  Always use dry-run for new environments
+  Backup important data before bulk cleanup
+  Verify test entity identification logic
+
+Maintenance
+Weekly Tasks
+  Review cleanup statistics
+  Check for failed entities
+  Verify test prefixes are current
+Monthly Tasks
+  Update test prefixes if needed
+  Review cleanup performance
+  Validate admin credentials rotation
+Support
+Resources
+Load Testing Guide
+Performance Testing Setup
+CI/CD Integration
+Contacts
+Performance Team: #performance-testing
+Data Team: #data-management
+DevOps: #devops-support
+</code></pre>
+
+</div>
+</body>
+</html>

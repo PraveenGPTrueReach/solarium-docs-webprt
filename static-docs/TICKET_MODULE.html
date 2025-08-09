@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TICKET_MODULE.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Support Ticket Desk Module</h1>
+<h2>Overview</h2>
+<p>The Support Ticket Desk module provides comprehensive customer support functionality within the Solarium Web Portal. It enables support agents to manage customer inquiries, track issue resolution, and maintain communication history.</p>
+<h2>Features</h2>
+<h3>Core Functionality</h3>
+<ul>
+<li><strong>Ticket Management</strong>: Create, view, update, and close support tickets</li>
+<li><strong>Message Threading</strong>: Chronological conversation history</li>
+<li><strong>Attachment Support</strong>: File upload and preview capabilities</li>
+<li><strong>Status Tracking</strong>: Open/Closed status with audit trail</li>
+<li><strong>Filtering &amp; Search</strong>: Advanced filtering and sorting options</li>
+</ul>
+<h3>User Interface Components</h3>
+<ul>
+<li><strong>TicketGrid</strong>: Data table with pagination and sorting</li>
+<li><strong>TicketFilters</strong>: Collapsible filter panel</li>
+<li><strong>TicketThreadDrawer</strong>: Message thread viewer with reply capability</li>
+<li><strong>TicketErrorBoundary</strong>: Error handling and recovery</li>
+</ul>
+<h2>Architecture</h2>
+<h3>Data Flow</h3>
+<p>API Layer (RTK Query) ← → Application Layer (Hooks) ← → UI Layer (Components)</p>
+<h3>Key Components</h3>
+<ol>
+<li><strong>ticketEndpoints.ts</strong>: API integration with optimistic updates</li>
+<li><strong>useTicketsTable.ts</strong>: State management hook</li>
+<li><strong>TicketGrid.tsx</strong>: Main list view component</li>
+<li><strong>TicketThreadDrawer.tsx</strong>: Detail view component</li>
+</ol>
+<h2>API Integration</h2>
+<h3>Endpoints</h3>
+<ul>
+<li><code>GET /api/v1/tickets</code> - List tickets with filtering</li>
+<li><code>GET /api/v1/tickets/:id</code> - Get ticket details</li>
+<li><code>POST /api/v1/tickets/:id/messages</code> - Add message to thread</li>
+<li><code>PATCH /api/v1/tickets/:id/close</code> - Close ticket</li>
+<li><code>PATCH /api/v1/tickets/:id/reopen</code> - Reopen ticket</li>
+</ul>
+<h3>Authentication</h3>
+<p>All API calls inherit JWT authentication and territory-based access control via <code>baseQueryWithTerritoryInjection</code>.</p>
+<h3>Error Handling</h3>
+<ul>
+<li><strong>401 Unauthorized</strong>: Triggers automatic token refresh</li>
+<li><strong>403 Forbidden</strong>: Triggers access denied handler</li>
+<li><strong>Network Errors</strong>: Graceful fallback with retry options</li>
+</ul>
+<h2>Performance Optimizations</h2>
+<h3>Caching Strategy</h3>
+<ul>
+<li><strong>RTK Query</strong>: Automatic caching with 60-second TTL</li>
+<li><strong>Optimistic Updates</strong>: Immediate UI feedback for user actions</li>
+<li><strong>Cache Invalidation</strong>: Smart invalidation on mutations</li>
+</ul>
+<h3>Virtual Scrolling</h3>
+<ul>
+<li>Automatically enabled for lists &gt; 100 items</li>
+<li>Maintains smooth performance with large datasets</li>
+<li>Configurable row height and buffer size</li>
+</ul>
+<h2>Accessibility</h2>
+<h3>Compliance</h3>
+<ul>
+<li><strong>WCAG 2.1 AA</strong>: Color contrast and keyboard navigation</li>
+<li><strong>ARIA Labels</strong>: Comprehensive labeling for screen readers</li>
+<li><strong>Focus Management</strong>: Proper focus handling in modals and drawers</li>
+</ul>
+<h3>Testing</h3>
+<ul>
+<li><strong>axe-core</strong>: Automated accessibility testing</li>
+<li><strong>Manual Testing</strong>: Keyboard navigation and screen reader testing</li>
+</ul>
+<h2>Security</h2>
+<h3>Content Security Policy</h3>
+<ul>
+<li><strong>Attachment Preview</strong>: Blob URLs allowed under existing <code>img-src</code>/<code>media-src</code> rules</li>
+<li><strong>XSS Protection</strong>: Input sanitization and output encoding</li>
+<li><strong>CSRF Protection</strong>: Token-based request validation</li>
+</ul>
+<h3>Data Protection</h3>
+<ul>
+<li><strong>Territory Isolation</strong>: Users can only access tickets within their territory</li>
+<li><strong>Audit Logging</strong>: All ticket actions are logged with user attribution</li>
+<li><strong>File Upload Security</strong>: Virus scanning and type validation</li>
+</ul>
+<h2>Testing Strategy</h2>
+<h3>Unit Tests</h3>
+<ul>
+<li><strong>Component Testing</strong>: Isolated component behavior</li>
+<li><strong>Hook Testing</strong>: State management logic</li>
+<li><strong>Utility Testing</strong>: Type guards and helper functions</li>
+</ul>
+<h3>Integration Tests</h3>
+<ul>
+<li><strong>MSW Mocking</strong>: API interaction testing</li>
+<li><strong>Optimistic Updates</strong>: End-to-end update flow testing</li>
+<li><strong>Error Scenarios</strong>: Comprehensive error handling testing</li>
+</ul>
+<h3>E2E Tests</h3>
+<ul>
+<li><strong>Cypress</strong>: Full user workflow testing</li>
+<li><strong>Accessibility</strong>: Automated a11y testing with axe</li>
+<li><strong>Performance</strong>: Lighthouse audits for page performance</li>
+</ul>
+<h2>Storybook Documentation</h2>
+<h3>Available Stories</h3>
+<ul>
+<li><strong>TicketGrid Stories</strong>: Various grid states and interactions</li>
+<li><strong>TicketThread Stories</strong>: Message thread and reply functionality</li>
+<li><strong>Interactive Tests</strong>: Automated interaction testing with play functions</li>
+</ul>
+<h3>Visual Regression Testing</h3>
+<ul>
+<li><strong>Chromatic</strong>: Automated visual testing for UI consistency</li>
+<li><strong>Cross-browser</strong>: Testing across different browsers and devices</li>
+<li><strong>Responsive Design</strong>: Testing mobile and tablet layouts</li>
+</ul>
+<h2>Usage Examples</h2>
+<h3>Basic Implementation</h3>
+<pre><code class="language-tsx">import { SupportTicketsPage } from &#39;./pages/SupportTicketsPage&#39;;
+
+// Add to your router
+&lt;Route path=&quot;/support-tickets&quot; element={&lt;SupportTicketsPage /&gt;} /&gt;
+</code></pre>
+
+</div>
+</body>
+</html>

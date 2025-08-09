@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRAFANA_DASHBOARD.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Solarium Performance Dashboard</h1>
+<h2>Overview</h2>
+<p>The Solarium Performance Dashboard provides real-time monitoring of k6 load test results through Grafana, with metrics stored in InfluxDB.</p>
+<h2>Quick Start</h2>
+<pre><code class="language-bash"># Start monitoring stack
+npm run monitoring:up
+
+# Run load test with metrics
+npm run perf:test:with-metrics
+
+# Open dashboard
+npm run grafana:open
+
+Dashboard URL
+Local Development: http://localhost:3001
+Credentials: admin/admin
+Dashboard Path: /d/solarium-perf-dashboard/solarium-performance-dashboard
+
+Panels Overview
+1. Response Time Percentiles
+    Purpose: Monitor P95, P99, and average response times
+    Threshold: P95 should stay below 3 seconds (baseline) or 5 seconds (stress)
+    Data Source: InfluxDB (http_req_duration metric)
+2. Throughput &amp; Virtual Users
+    Purpose: Track requests per second and active virtual users
+    Metrics: RPS, VU count over time
+    Data Source: InfluxDB (http_reqs, vus metrics)
+3. Error Breakdown (4xx/5xx/Timeouts)
+    Purpose: Categorize and monitor different error types
+    Metrics: Client errors, server errors, timeouts
+    Data Source: InfluxDB (http_4xx_errors, http_5xx_errors, http_timeouts)
+4. Server Resource Utilization (Azure Monitor)
+    Purpose: Monitor CPU and memory utilization
+    Threshold: CPU should stay below 80%
+    Data Source: Azure Monitor (mocked locally)
+5. Failure Rates
+    Purpose: Track HTTP and scenario failure percentages
+    Threshold: Should stay below 1-2%
+    Data Source: InfluxDB (http_req_failed, scenario_failure_rate)
+6. Retry &amp; Iteration Metrics
+    Purpose: Monitor retry attempts and scenario iterations
+    Metrics: HTTP retries, scenario iterations per second
+    Data Source: InfluxDB (http_retries, scenario_iterations)
+
+Configuration
+InfluxDB Configuration
+    Database: k6
+    URL: http://localhost:8086
+    Credentials: k6/k6
+k6 Integration
+# Enable InfluxDB export
+export K6_OUT=influxdb=http://localhost:8086/k6
+
+# Run test with metrics
+npm run k6:baseline
+
+Azure Monitor Integration
+For production, replace the mock service with actual Azure Monitor:
+# In docker/grafana/provisioning/datasources/influx.yml
+- name: Azure-Monitor
+  type: grafana-azure-monitor-datasource
+  jsonData:
+    subscriptionId: your-subscription-id
+    resourceGroup: your-resource-group
+    resourceName: your-app-service-name
+  secureJsonData:
+    clientId: your-client-id
+    clientSecret: your-client-secret
+    tenantId: your-tenant-id
+
+Troubleshooting
+Dashboard Not Loading
+
+# Check service status
+docker compose --profile monitoring ps
+
+# Check logs
+npm run monitoring:logs
+
+# Restart services
+npm run monitoring:down &amp;&amp; npm run monitoring:up
+
+No Data in Panels
+# Verify InfluxDB connection
+docker compose exec influxdb influx -database k6 -execute &quot;SHOW MEASUREMENTS&quot;
+
+# Run test with metrics enabled
+K6_OUT=influxdb=http://localhost:8086/k6 npm run k6:health
+
+Permission Issues
+# Fix Grafana permissions
+sudo chown -R 472:472 docker/grafana/
+
+Maintenance
+Data Retention
+    InfluxDB data persists in influx_data volume
+    Grafana configuration persists in grafana_data volume
+    Clean up old data: docker volume rm solarium-webprt_influx_data
+
+Backup
+# Backup Grafana dashboards
+docker cp $(docker compose ps -q grafana):/var/lib/grafana/dashboards ./backup/
+
+# Backup InfluxDB data
+docker compose exec influxdb influxd backup -database k6 /tmp/backup
+
+## Testing &amp; Verification Steps
+
+**1. Start the monitoring stack:**
+```cmd
+npm run monitoring:up
+
+2. Verify services are running:
+docker compose --profile monitoring ps
+
+3. Check Grafana is accessible:
+curl -u admin:admin http://localhost:3001/api/health
+
+4. Check InfluxDB is accessible:
+curl http://localhost:8086/ping
+
+5. Run k6 test with metrics:
+set K6_OUT=influxdb=http://localhost:8086/k6
+npm run k6:health
+
+6. Open dashboard in browser:
+npm run grafana:open
+
+7. Run Cypress dashboard test:
+npm run cy:run -- --spec &quot;cypress/e2e/perf-dashboard.spec.ts&quot;
+
+8. Verify data is flowing to InfluxDB:
+docker compose exec influxdb influx -database k6 -execute &quot;SHOW MEASUREMENTS&quot;
+</code></pre>
+
+</div>
+</body>
+</html>

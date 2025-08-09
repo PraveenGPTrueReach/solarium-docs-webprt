@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BUILD.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Build Configuration Guide</h1>
+<p>This document explains the build configuration and deployment process for the Solarium Web Portal.</p>
+<h2>Environment Configuration</h2>
+<p>The application supports three environments:</p>
+<h3>Development (DEV)</h3>
+<ul>
+<li>Local development with hot reloading</li>
+<li>Extended session timeouts for convenience</li>
+<li>Debug tools enabled</li>
+<li>Mock authentication available</li>
+</ul>
+<h3>Staging (STAGING)</h3>
+<ul>
+<li>Production-like environment for testing</li>
+<li>Production session timeouts</li>
+<li>Limited debug capabilities</li>
+<li>Real API endpoints</li>
+</ul>
+<h3>Production (PROD)</h3>
+<ul>
+<li>Optimized build for production</li>
+<li>Security-focused configuration</li>
+<li>Minimal logging</li>
+<li>Performance optimizations</li>
+</ul>
+<h2>Environment Variables</h2>
+<p>All environment variables must be prefixed with <code>REACT_APP_</code> to be accessible in the browser.</p>
+<h3>Required Variables</h3>
+<ul>
+<li><code>REACT_APP_ENVIRONMENT</code>: Environment identifier (DEV, STAGING, PROD)</li>
+<li><code>REACT_APP_API_BASE_URL</code>: Backend API URL</li>
+</ul>
+<h3>Optional Variables</h3>
+<ul>
+<li><code>REACT_APP_SESSION_TIMEOUT_MIN</code>: Session timeout in minutes (default: 30)</li>
+<li><code>REACT_APP_SESSION_WARNING_MIN</code>: Warning time before timeout (default: 5)</li>
+<li><code>REACT_APP_ENABLE_DEBUG_TOOLS</code>: Enable debug tools (default: false)</li>
+<li><code>REACT_APP_SENTRY_DSN</code>: Sentry error reporting DSN</li>
+<li><code>REACT_APP_ANALYTICS_ID</code>: Analytics tracking ID</li>
+</ul>
+<h2>Build Commands</h2>
+<h3>Development</h3>
+<pre><code class="language-bash"># Start development server
+npm run dev
+
+# Start with staging configuration
+npm run dev:staging
+</code></pre>
+<h3>Building</h3>
+<pre><code class="language-bash"># Build for production (default)
+npm run build
+
+# Build for specific environment
+npm run build:dev
+npm run build:staging
+npm run build:prod
+
+# Analyze bundle size
+npm run build:analyze
+</code></pre>
+<h3>Testing Builds</h3>
+<pre><code class="language-bash"># Preview production build
+npm run preview
+
+# Preview staging build
+npm run preview:staging
+</code></pre>
+<h3>Quality Checks</h3>
+<pre><code class="language-bash"># Run all quality checks
+npm run validate
+
+# Individual checks
+npm run type-check
+npm run lint
+npm run test:ci
+npm run size-check
+</code></pre>
+<h2>Bundle Size Limits</h2>
+<p>The application enforces bundle size limits:</p>
+<ul>
+<li>JavaScript: 1MB (gzipped)</li>
+<li>CSS: 50KB (gzipped)</li>
+</ul>
+<p>Use <code>npm run build:analyze</code> to analyze bundle composition.</p>
+<h2>Deployment</h2>
+<h3>Manual Deployment</h3>
+<pre><code class="language-bash"># Deploy to staging
+npm run deploy:staging
+
+# Deploy to production
+npm run deploy:prod
+</code></pre>
+<h3>CI/CD Pipeline</h3>
+<p>The project includes a GitHub Actions workflow that:</p>
+<ol>
+<li>Runs tests and quality checks</li>
+<li>Builds for all environments</li>
+<li>Checks bundle sizes</li>
+<li>Deploys to staging/production based on branch</li>
+</ol>
+<h3>Environment Files</h3>
+<p>Create environment-specific files:</p>
+<ul>
+<li><code>.env.development</code> - Development configuration</li>
+<li><code>.env.staging</code> - Staging configuration</li>
+<li><code>.env.production</code> - Production configuration</li>
+<li><code>.env.local</code> - Local overrides (ignored by git)</li>
+</ul>
+<h2>Performance Optimization</h2>
+<p>The build process includes:</p>
+<ul>
+<li>Code splitting by vendor/feature</li>
+<li>Tree shaking for unused code</li>
+<li>Asset optimization</li>
+<li>Source map generation (dev/staging only)</li>
+<li>Bundle compression</li>
+</ul>
+<h2>Environment Banner</h2>
+<p>In development and staging, an environment banner displays:</p>
+<ul>
+<li>Current environment name</li>
+<li>Version information</li>
+<li>Build details</li>
+<li>Configuration summary</li>
+</ul>
+<p>The banner can be dismissed and is automatically hidden in production.</p>
+<h2>Troubleshooting</h2>
+<h3>Common Issues</h3>
+<ol>
+<li><p><strong>Environment variables not loaded</strong></p>
+<ul>
+<li>Ensure variables start with <code>REACT_APP_</code></li>
+<li>Check the correct <code>.env</code> file is present</li>
+<li>Restart the development server</li>
+</ul>
+</li>
+<li><p><strong>Bundle size too large</strong></p>
+<ul>
+<li>Use <code>npm run build:analyze</code> to identify large dependencies</li>
+<li>Consider code splitting or lazy loading</li>
+<li>Remove unused dependencies</li>
+</ul>
+</li>
+<li><p><strong>Build fails</strong></p>
+<ul>
+<li>Run <code>npm run type-check</code> to identify TypeScript errors</li>
+<li>Check <code>npm run lint</code> for code quality issues</li>
+<li>Ensure all environment variables are valid</li>
+</ul>
+</li>
+</ol>
+<h2>Security Headers Implementation</h2>
+<h3>Overview</h3>
+<p>The Solarium Web Portal implements comprehensive security headers to protect against common web vulnerabilities including XSS, clickjacking, CSRF, and content injection attacks.</p>
+<h3>Security Headers Implemented</h3>
+<h4>1. Content Security Policy (CSP)</h4>
+<ul>
+<li><strong>Purpose</strong>: Prevents XSS attacks by controlling resource loading</li>
+<li><strong>Implementation</strong>: Server headers + meta tag fallback (DEV only)</li>
+<li><strong>Policy</strong>: Restrictive whitelist approach</li>
+</ul>
+<pre><code>Content-Security-Policy: default-src &#39;self&#39;; 
+  script-src &#39;self&#39; https://cdn.jsdelivr.net; 
+  style-src &#39;self&#39; &#39;unsafe-inline&#39; https://fonts.googleapis.com; 
+  font-src &#39;self&#39; https://fonts.gstatic.com data:; 
+  img-src &#39;self&#39; data: https:; 
+  connect-src &#39;self&#39; https: wss:; 
+  frame-ancestors &#39;none&#39;; 
+  base-uri &#39;self&#39;; 
+  form-action &#39;self&#39;; 
+  object-src &#39;none&#39;
+</code></pre>
+<h4>2. HTTP Strict Transport Security (HSTS)</h4>
+<ul>
+<li><strong>Purpose</strong>: Enforces HTTPS connections</li>
+<li><strong>Configuration</strong>: 1 year max-age with subdomain inclusion</li>
+</ul>
+<pre><code>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+</code></pre>
+<h4>3. X-Frame-Options</h4>
+<ul>
+<li><strong>Purpose</strong>: Prevents clickjacking attacks</li>
+<li><strong>Value</strong>: <code>DENY</code> - completely blocks framing</li>
+</ul>
+<h4>4. X-Content-Type-Options</h4>
+<ul>
+<li><strong>Purpose</strong>: Prevents MIME type sniffing</li>
+<li><strong>Value</strong>: <code>nosniff</code></li>
+</ul>
+<h4>5. Referrer-Policy</h4>
+<ul>
+<li><strong>Purpose</strong>: Controls referrer information disclosure</li>
+<li><strong>Value</strong>: <code>strict-origin-when-cross-origin</code></li>
+</ul>
+<h4>6. Permissions-Policy</h4>
+<ul>
+<li><strong>Purpose</strong>: Controls browser feature access</li>
+<li><strong>Configuration</strong>: Restrictive policy blocking dangerous features</li>
+</ul>
+<h3>Implementation Architecture</h3>
+<h4>Production (Docker/Nginx)</h4>
+<pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Client        │───▶│  Nginx Proxy     │───▶│  React SPA      │
+│   Browser       │    │  + Security      │    │  (Static Files) │
+│                 │    │    Headers       │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │ security.conf    │
+                       │ - CSP headers    │
+                       │ - HSTS headers   │
+                       │ - Frame options  │
+                       └──────────────────┘
+</code></pre>
+<h4>Development (Vite Dev Server)</h4>
+<pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Client        │───▶│  Vite Dev Server │───▶│  React SPA      │
+│   Browser       │    │  + Plugin        │    │  (Hot Reload)   │
+│                 │    │    Middleware    │    │                 │
+└──────────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────────────┐
+                    │ vite-plugin-security-   │
+                    │ headers.ts              │
+                    │ - Runtime header        │
+                    │   injection             │
+                    │ - CSP Meta fallback     │
+                    └─────────────────────────┘
+</code></pre>
+<h3>Environment-Specific Considerations</h3>
+<h4>Development vs Production</h4>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Development</th>
+<th>Production</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CSP Enforcement</td>
+<td>Relaxed (unsafe-inline allowed)</td>
+<td>Strict</td>
+</tr>
+<tr>
+<td>Header Source</td>
+<td>Vite Plugin + Meta Tags</td>
+<td>Nginx Server Headers</td>
+</tr>
+<tr>
+<td>localhost Connections</td>
+<td>Allowed</td>
+<td>Blocked</td>
+</tr>
+<tr>
+<td>Debug Logging</td>
+<td>Enabled</td>
+<td>Disabled</td>
+</tr>
+</tbody></table>
+<p>⚠️ <strong>Important</strong>: Meta tag CSP is a fallback for development only. Production MUST use server headers for proper security.</p>
+<h3>Build Process</h3>
+<h4>1. Development Build</h4>
+<pre><code class="language-bash">npm run dev
+# - Vite plugin applies security headers
+# - Meta CSP tags injected as fallback
+# - Localhost connections allowed for HMR
+</code></pre>
+<h4>2. Production Build</h4>
+<pre><code class="language-bash">npm run build
+# - Static files generated
+# - Meta tags removed (server headers used)
+# - Docker image includes nginx security.conf
+</code></pre>
+<h4>3. Docker Build</h4>
+<pre><code class="language-bash">docker build -t solarium-portal .
+# - Nginx configuration includes security.conf
+# - Security headers applied at proxy level
+# - Static files served with proper headers
+</code></pre>
+<h3>Security Verification</h3>
+<h4>1. Manual Testing</h4>
+<pre><code class="language-bash"># Check headers in development
+curl -I http://localhost:3000
+
+# Check headers in production
+curl -I https://portal.solarium.com
+</code></pre>
+<h4>2. Automated Testing</h4>
+<pre><code class="language-bash"># Run security header tests
+npm run test src/security/__tests__/headers.test.ts
+
+# Full security scan
+npm run security:scan
+</code></pre>
+<h4>3. External Validation</h4>
+<ul>
+<li><a href="https://securityheaders.com">SecurityHeaders.com</a> - Should achieve A+ rating</li>
+<li><a href="https://observatory.mozilla.org">Mozilla Observatory</a> - Should score 100+</li>
+<li>OWASP ZAP baseline scan - Should report 0 high/medium alerts</li>
+</ul>
+<h3>Troubleshooting</h3>
+<h4>Common Issues</h4>
+<ol>
+<li><p><strong>CSP Violations in Console</strong></p>
+<ul>
+<li>Check script/style sources are whitelisted</li>
+<li>Verify nonce implementation for inline content</li>
+<li>Material-UI requires &#39;unsafe-inline&#39; for styles</li>
+</ul>
+</li>
+<li><p><strong>HSTS Not Working</strong></p>
+<ul>
+<li>Ensure HTTPS is properly configured</li>
+<li>Check browser HSTS cache</li>
+<li>Verify preload list submission</li>
+</ul>
+</li>
+<li><p><strong>Frame-Options Blocking Legitimate Content</strong></p>
+<ul>
+<li>Review X-Frame-Options policy</li>
+<li>Consider CSP frame-ancestors as alternative</li>
+</ul>
+</li>
+</ol>
+<h4>Debug Commands</h4>
+<pre><code class="language-bash"># Test CSP policy
+npm run test:csp
+
+# Validate all security headers
+npm run test:security
+
+# Check for header conflicts
+npm run debug:headers
+</code></pre>
+<h3>Maintenance</h3>
+<h4>Regular Tasks</h4>
+<ol>
+<li><strong>Monthly</strong>: Review CSP violation reports</li>
+<li><strong>Quarterly</strong>: Update external resource domains</li>
+<li><strong>Annually</strong>: Review and tighten security policies</li>
+</ol>
+<h4>Updates Required When:</h4>
+<ul>
+<li>Adding new external dependencies (CDN, fonts, etc.)</li>
+<li>Integrating third-party services (analytics, chat, etc.)</li>
+<li>Changing hosting infrastructure</li>
+</ul>
+<h3>References</h3>
+<ul>
+<li><a href="https://owasp.org/www-project-secure-headers/">OWASP Secure Headers Project</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/Security">MDN Web Security</a></li>
+<li><a href="https://content-security-policy.com/">Content Security Policy Reference</a></li>
+</ul>
+<h2>Document Module Testing</h2>
+<h3>Unit Tests</h3>
+<pre><code class="language-bash"># Test document utilities
+npm test -- src/utils/__tests__/document.test.ts
+
+# Test document components
+npm test -- src/components/doc/
+
+
+```markdown
+### Reports Module Scripts
+
+```bash
+# Test reports module specifically
+npm run test src/pages/reports/
+npm run test src/hooks/useReport*
+npm run test src/components/report/
+
+# Run reports e2e tests
+npm run cypress:run --spec &quot;cypress/e2e/reports-kpi.spec.ts&quot;
+
+# Accessibility validation
+npm run test -- --testPathPattern=&quot;accessibility&quot;
+
+# Performance benchmarks
+npm run test -- --testPathPattern=&quot;perf&quot;
+
+# Quality gate check for reports
+npm run sonar:scan -- --module=reports
+</code></pre>
+
+</div>
+</body>
+</html>

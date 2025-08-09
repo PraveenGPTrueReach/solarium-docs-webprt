@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOAK_TESTING.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>600 VU Soak Testing Guide</h1>
+<h2>Overview</h2>
+<p>The 600 VU soak test validates system stability under sustained load for extended periods. This test is designed to detect memory leaks, connection pool exhaustion, and performance degradation over time.</p>
+<h2>Test Characteristics</h2>
+<h3>Load Profile</h3>
+<ul>
+<li><strong>Ramp-up</strong>: 5 minutes to reach 600 VUs</li>
+<li><strong>Sustained Load</strong>: 600 VUs for 60 minutes</li>
+<li><strong>Ramp-down</strong>: 3 minutes to 0 VUs</li>
+<li><strong>Total Duration</strong>: 68 minutes</li>
+</ul>
+<h3>Performance Targets</h3>
+<ul>
+<li><strong>P95 Latency</strong>: ≤ 4 seconds</li>
+<li><strong>Error Rate</strong>: &lt; 1%</li>
+<li><strong>Soak Stability</strong>: &gt; 99%</li>
+<li><strong>Connection Errors</strong>: &lt; 50 total</li>
+</ul>
+<h2>Usage</h2>
+<h3>Local Execution</h3>
+<pre><code class="language-bash"># Full soak test (68 minutes)
+npm run k6:soak600
+
+# With monitoring and analysis
+npm run k6:soak600:full
+
+# Short mode for testing (13 minutes)
+K6_SOAK_SHORT=true npm run k6:soak600
+
+Weekend Testing
+# Complete weekend soak test workflow
+npm run soak:weekend
+
+CI/CD Integration
+# Manual trigger via GitHub Actions
+gh workflow run monthly-soak.yml --field environment=staging
+
+# Automatic monthly execution
+# Runs first Saturday of each month at 02:00 UTC
+
+Key Metrics
+Stability Metrics
+    Soak Stability: Percentage of successful iterations
+    Connection Errors: Network-level failures
+    Memory Leak Indicator: Proxy metric for memory usage
+    Long-running Performance: Performance consistency over time
+Error Analysis
+    4xx Errors: Client-side errors
+    5xx Errors: Server-side errors
+    Timeouts: Request timeouts
+    Retries: Automatic retry attempts
+Memory Leak Detection
+Indicators
+    LOW (&lt; 10,000): Normal operation
+    MEDIUM (10,000-15,000): Monitor closely
+    HIGH (&gt; 15,000): Investigate immediately
+Analysis Steps
+    Review Azure Monitor memory usage
+    Check connection pool metrics
+    Analyze garbage collection patterns
+    Compare with baseline measurements
+Monitoring &amp; Analysis
+Real-time Monitoring
+    Grafana Dashboard: http://localhost:3001
+    Key Panels: Response times, error rates, VU count
+    Azure Monitor: CPU, memory, connection pools
+
+Post-test Analysis
+# Parse results
+npm run k6:soak600:parse
+
+# Generate report
+npm run perf:report artifacts/soak600-*.json
+
+# Threshold check
+npm run k6:soak600:check
+
+Troubleshooting
+
+Common Issues
+High Memory Usage
+# Check memory leak indicators
+jq &#39;.metrics.memory_leak_indicator&#39; artifacts/soak600-*.json
+
+# Review Azure Monitor
+# Look for steadily increasing memory usage
+Connection Pool Exhaustion
+# Check connection errors
+jq &#39;.metrics.connection_errors&#39; artifacts/soak600-*.json
+
+# Review server-side connection pool settings
+Performance Degradation
+# Compare early vs late test performance
+jq &#39;.metrics.long_running_performance&#39; artifacts/soak600-*.json
+
+Resource Requirements
+    Memory: 8GB+ available
+    CPU: 4+ cores recommended
+    Network: Stable connection to target
+    Disk: 2GB+ free space
+
+Best Practices
+Timing
+    Weekends: Preferred for full runs
+    Off-peak Hours: Avoid high-traffic periods
+    Pre-release: Before major deployments
+Environment
+    Staging: Primary target environment
+    Isolated: Avoid concurrent load tests
+    Monitored: Ensure full observability
+Analysis
+    Baseline Comparison: Compare with previous runs
+    Trend Analysis: Look for degradation patterns
+    Resource Correlation: Compare with infrastructure metrics
+
+Automation
+Monthly Schedule
+# First Saturday of each month at 02:00 UTC
+schedule:
+  - cron: &#39;0 2 1-7 * 6&#39;
+Notifications
+    Slack: Real-time results to #performance-alerts
+    Email: Monthly summary reports
+    Dashboard: Always-on monitoring
+Artifact Retention
+    Results: 90 days
+    Reports: Permanent in perf-reports branch
+    Logs: 30 days
+Integration with Other Tests
+Relationship to Other Tests
+    Baseline: Validates normal load performance
+    Stress: Tests peak load handling
+    Soak: Validates sustained load stability
+Workflow Integration
+    Baseline → Establish performance baseline
+    Stress → Validate peak load handling
+    Soak → Confirm sustained stability
+    Production → Deploy with confidence
+Expected Results
+Success Criteria
+    All thresholds pass
+    No memory leaks detected
+    Stable performance throughout test
+    Error rate remains low
+Failure Investigation
+    Check threshold violations
+    Analyze error patterns
+    Review resource utilization
+    Compare with baseline data
+    Identify root causes
+Support
+Resources
+    Load Testing Guide
+    Performance Thresholds
+    Grafana Dashboard
+Contacts
+    Performance Team: #performance-testing
+    Infrastructure: #infrastructure-support
+    On-call: Performance engineering rotation
+</code></pre>
+
+</div>
+</body>
+</html>

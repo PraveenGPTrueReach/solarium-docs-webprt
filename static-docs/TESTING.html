@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TESTING.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Testing Guide</h1>
+<p>This document provides comprehensive testing instructions for the Solarium Web Portal.</p>
+<h2>Automated Testing</h2>
+<h3>Test Suites</h3>
+<h4>Unit Tests</h4>
+<pre><code class="language-bash">npm run test:unit
+</code></pre>
+<p>Tests individual components and functions in isolation.</p>
+<h4>Integration Tests</h4>
+<pre><code class="language-bash">npm run test:integration
+</code></pre>
+<p>Tests component interactions and user flows.</p>
+<h4>Accessibility Tests</h4>
+<pre><code class="language-bash">npm run test:accessibility
+</code></pre>
+<p>Tests components for accessibility compliance using jest-axe.</p>
+<h4>Performance Tests</h4>
+<pre><code class="language-bash">npm run test:performance
+</code></pre>
+<p>Tests rendering performance and memory usage.</p>
+<h3>Coverage Requirements</h3>
+<ul>
+<li><strong>Minimum Coverage</strong>: 50% overall</li>
+<li><strong>Component Coverage</strong>: 60%</li>
+<li><strong>Context Coverage</strong>: 55%</li>
+</ul>
+<p>Run coverage report:</p>
+<pre><code class="language-bash">npm run test:coverage
+</code></pre>
+<h3>Continuous Integration</h3>
+<p>Run the complete test suite:</p>
+<pre><code class="language-bash">npm run qa:full
+</code></pre>
+<p>This includes:</p>
+<ul>
+<li>Type checking</li>
+<li>Linting</li>
+<li>All test suites</li>
+<li>Build verification</li>
+<li>Bundle size checks</li>
+</ul>
+<h2>Manual Testing Checklist</h2>
+<h3>🔐 Authentication Flow</h3>
+<h4>Login Process</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Navigate to application (should redirect to login)</li>
+<li><input disabled="" type="checkbox"> Enter valid admin credentials (<a href="mailto:admin@solarium.com">admin@solarium.com</a> / any password)</li>
+<li><input disabled="" type="checkbox"> Verify successful login and redirect to dashboard</li>
+<li><input disabled="" type="checkbox"> Verify admin role badge displays</li>
+<li><input disabled="" type="checkbox"> Test logout functionality</li>
+</ul>
+<h4>Role-Based Access</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Login as KAM user (<a href="mailto:kam@solarium.com">kam@solarium.com</a> / any password)</li>
+<li><input disabled="" type="checkbox"> Verify KAM role badge displays</li>
+<li><input disabled="" type="checkbox"> Verify admin-only features are hidden</li>
+<li><input disabled="" type="checkbox"> Test access to admin-only routes (should show 403)</li>
+</ul>
+<h3>🖥️ Responsive Design</h3>
+<h4>Desktop (1920x1080)</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify full sidebar is visible</li>
+<li><input disabled="" type="checkbox"> Check all navigation items are accessible</li>
+<li><input disabled="" type="checkbox"> Verify dashboard grid layout (3-4 columns)</li>
+<li><input disabled="" type="checkbox"> Test sidebar collapse functionality</li>
+</ul>
+<h4>Tablet (1024x768)</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify responsive layout adapts correctly</li>
+<li><input disabled="" type="checkbox"> Test sidebar toggle behavior</li>
+<li><input disabled="" type="checkbox"> Check dashboard grid responsiveness (2-3 columns)</li>
+<li><input disabled="" type="checkbox"> Verify touch interactions work</li>
+</ul>
+<h4>Mobile (375x667)</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify mobile drawer navigation</li>
+<li><input disabled="" type="checkbox"> Test hamburger menu functionality</li>
+<li><input disabled="" type="checkbox"> Check single-column layout</li>
+<li><input disabled="" type="checkbox"> Verify touch targets are appropriate size</li>
+<li><input disabled="" type="checkbox"> Test swipe gestures (if implemented)</li>
+</ul>
+<h3>🔄 Navigation &amp; Routing</h3>
+<h4>Basic Navigation</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test all sidebar navigation links</li>
+<li><input disabled="" type="checkbox"> Verify active state highlighting</li>
+<li><input disabled="" type="checkbox"> Test browser back/forward buttons</li>
+<li><input disabled="" type="checkbox"> Verify page titles update correctly</li>
+</ul>
+<h4>Error Pages</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Navigate to non-existent URL (should show 404)</li>
+<li><input disabled="" type="checkbox"> Test 404 page &quot;Go Back&quot; button</li>
+<li><input disabled="" type="checkbox"> Test 404 page &quot;Go Home/Dashboard&quot; button</li>
+<li><input disabled="" type="checkbox"> Access admin route as KAM (should show 403)</li>
+<li><input disabled="" type="checkbox"> Test 403 page navigation options</li>
+</ul>
+<h3>⚡ Performance</h3>
+<h4>Loading States</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify loading indicators during authentication</li>
+<li><input disabled="" type="checkbox"> Test skeleton loaders on dashboard</li>
+<li><input disabled="" type="checkbox"> Check loading states during navigation</li>
+<li><input disabled="" type="checkbox"> Verify no stuck loading states</li>
+</ul>
+<h4>Bundle Size</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Run <code>npm run build:analyze</code></li>
+<li><input disabled="" type="checkbox"> Verify initial bundle &lt; 1MB</li>
+<li><input disabled="" type="checkbox"> Check for unnecessary code splitting</li>
+<li><input disabled="" type="checkbox"> Verify lazy loading works correctly</li>
+</ul>
+<h3>🧪 Error Handling</h3>
+<h4>Error Boundaries</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Trigger component error (if test button exists)</li>
+<li><input disabled="" type="checkbox"> Verify error boundary catches error</li>
+<li><input disabled="" type="checkbox"> Test &quot;Try Again&quot; functionality</li>
+<li><input disabled="" type="checkbox"> Verify error logging (check console)</li>
+</ul>
+<h4>Network Errors</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Simulate network failure during login</li>
+<li><input disabled="" type="checkbox"> Verify appropriate error messages</li>
+<li><input disabled="" type="checkbox"> Test retry mechanisms</li>
+<li><input disabled="" type="checkbox"> Check offline behavior (if implemented)</li>
+</ul>
+<h3>⏱️ Session Management</h3>
+<h4>Session Timeout</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Wait for session warning (appears 5 min before expiry)</li>
+<li><input disabled="" type="checkbox"> Test &quot;Stay Logged In&quot; button</li>
+<li><input disabled="" type="checkbox"> Test &quot;Logout Now&quot; button</li>
+<li><input disabled="" type="checkbox"> Verify automatic logout after timeout</li>
+<li><input disabled="" type="checkbox"> Test session extension on activity</li>
+</ul>
+<h4>Session Persistence</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Login and refresh page</li>
+<li><input disabled="" type="checkbox"> Verify user remains logged in</li>
+<li><input disabled="" type="checkbox"> Close and reopen browser</li>
+<li><input disabled="" type="checkbox"> Verify session persistence behavior</li>
+</ul>
+<h3>🎨 UI/UX Components</h3>
+<h4>Buttons</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test all button variants (primary, secondary, outline)</li>
+<li><input disabled="" type="checkbox"> Verify loading states on buttons</li>
+<li><input disabled="" type="checkbox"> Test button hover effects</li>
+<li><input disabled="" type="checkbox"> Check button accessibility (keyboard navigation)</li>
+</ul>
+<h4>Modals</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test modal opening/closing</li>
+<li><input disabled="" type="checkbox"> Verify backdrop click closes modal</li>
+<li><input disabled="" type="checkbox"> Test escape key to close</li>
+<li><input disabled="" type="checkbox"> Check modal responsiveness</li>
+</ul>
+<h4>Forms</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test all form field types</li>
+<li><input disabled="" type="checkbox"> Verify validation messages</li>
+<li><input disabled="" type="checkbox"> Test password visibility toggle</li>
+<li><input disabled="" type="checkbox"> Check form submission states</li>
+</ul>
+<h3>🌍 Environment Configuration</h3>
+<h4>Development Environment</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify environment banner displays</li>
+<li><input disabled="" type="checkbox"> Check &quot;Development&quot; label and version</li>
+<li><input disabled="" type="checkbox"> Test banner expansion for build info</li>
+<li><input disabled="" type="checkbox"> Verify banner dismissal functionality</li>
+</ul>
+<h4>Staging Environment</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Build with staging config: <code>npm run build:staging</code></li>
+<li><input disabled="" type="checkbox"> Verify staging API URL configuration</li>
+<li><input disabled="" type="checkbox"> Check environment-specific features</li>
+<li><input disabled="" type="checkbox"> Test staging session timeout settings</li>
+</ul>
+<h4>Production Environment</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Build with production config: <code>npm run build:prod</code></li>
+<li><input disabled="" type="checkbox"> Verify no environment banner</li>
+<li><input disabled="" type="checkbox"> Check production optimizations</li>
+<li><input disabled="" type="checkbox"> Verify no debug tools available</li>
+</ul>
+<h3>♿ Accessibility</h3>
+<h4>Keyboard Navigation</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Navigate entire app using only keyboard</li>
+<li><input disabled="" type="checkbox"> Verify focus indicators are visible</li>
+<li><input disabled="" type="checkbox"> Test tab order is logical</li>
+<li><input disabled="" type="checkbox"> Check skip links (if implemented)</li>
+</ul>
+<h4>Screen Reader Support</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test with screen reader (if available)</li>
+<li><input disabled="" type="checkbox"> Verify ARIA labels are present</li>
+<li><input disabled="" type="checkbox"> Check heading hierarchy</li>
+<li><input disabled="" type="checkbox"> Test form field labels</li>
+</ul>
+<h4>Color &amp; Contrast</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Verify color contrast meets WCAG guidelines</li>
+<li><input disabled="" type="checkbox"> Test in high contrast mode</li>
+<li><input disabled="" type="checkbox"> Check color-only information usage</li>
+<li><input disabled="" type="checkbox"> Test with color blindness simulator</li>
+</ul>
+<h3>🔧 Browser Compatibility</h3>
+<h4>Chrome</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test all major functionality</li>
+<li><input disabled="" type="checkbox"> Verify developer tools work</li>
+<li><input disabled="" type="checkbox"> Check performance metrics</li>
+<li><input disabled="" type="checkbox"> Test extensions compatibility</li>
+</ul>
+<h4>Firefox</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test core functionality</li>
+<li><input disabled="" type="checkbox"> Verify responsive design</li>
+<li><input disabled="" type="checkbox"> Check security features</li>
+<li><input disabled="" type="checkbox"> Test developer tools</li>
+</ul>
+<h4>Safari</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test on macOS Safari</li>
+<li><input disabled="" type="checkbox"> Verify iOS Safari (if mobile support)</li>
+<li><input disabled="" type="checkbox"> Check webkit-specific features</li>
+<li><input disabled="" type="checkbox"> Test privacy features</li>
+</ul>
+<h4>Edge</h4>
+<ul>
+<li><input disabled="" type="checkbox"> Test on Windows Edge</li>
+<li><input disabled="" type="checkbox"> Verify Chromium compatibility</li>
+<li><input disabled="" type="checkbox"> Check Microsoft integrations</li>
+<li><input disabled="" type="checkbox"> Test accessibility features</li>
+</ul>
+<h2>Test Data</h2>
+<h3>User Accounts</h3>
+<ul>
+<li><strong>Admin</strong>: <a href="mailto:admin@solarium.com">admin@solarium.com</a> / any password</li>
+<li><strong>KAM</strong>: <a href="mailto:kam@solarium.com">kam@solarium.com</a> / any password</li>
+</ul>
+<h3>Test Scenarios</h3>
+<ul>
+<li><strong>New User</strong>: First-time login flow</li>
+<li><strong>Returning User</strong>: Established session</li>
+<li><strong>Different Roles</strong>: Admin vs KAM capabilities</li>
+<li><strong>Session Expiry</strong>: Timeout scenarios</li>
+</ul>
+<h2>Reporting Issues</h2>
+<p>When reporting bugs, include:</p>
+<ol>
+<li>Steps to reproduce</li>
+<li>Expected vs actual behavior</li>
+<li>Browser and version</li>
+<li>Screen size / device</li>
+<li>Console errors (if any)</li>
+<li>Screenshots (if helpful)</li>
+</ol>
+<h2>Performance Benchmarks</h2>
+<p>Target performance metrics:</p>
+<ul>
+<li><strong>Initial page load</strong>: &lt; 3 seconds</li>
+<li><strong>Route navigation</strong>: &lt; 500ms</li>
+<li><strong>Component render</strong>: &lt; 100ms</li>
+<li><strong>Bundle size</strong>: &lt; 1MB initial</li>
+<li><strong>Lighthouse score</strong>: &gt; 90</li>
+</ul>
+<p>Use browser dev tools to measure:</p>
+<pre><code class="language-bash"># Run lighthouse audit
+npx lighthouse http://localhost:3000 --chrome-flags=&quot;--headless&quot;
+</code></pre>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PERFORMANCE_THRESHOLDS.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Performance Thresholds Configuration</h1>
+<h2>Overview</h2>
+<p>The performance threshold checker validates k6 test results against configurable quality gates to prevent performance regressions from being merged into the codebase.</p>
+<h2>Environment Variables</h2>
+<h3>Core Thresholds</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PERF_P95_MS</code></td>
+<td>3000</td>
+<td>P95 response time threshold in milliseconds</td>
+</tr>
+<tr>
+<td><code>PERF_ERROR_RATE</code></td>
+<td>1.0</td>
+<td>HTTP error rate threshold in percentage</td>
+</tr>
+<tr>
+<td><code>PERF_SCENARIO_ERROR_RATE</code></td>
+<td>1.0</td>
+<td>Scenario failure rate threshold in percentage</td>
+</tr>
+<tr>
+<td><code>PERF_SERVER_ERROR_RATE</code></td>
+<td>2.0</td>
+<td>Server error (5xx) rate threshold in percentage</td>
+</tr>
+</tbody></table>
+<h3>Additional Thresholds</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PERF_MIN_THROUGHPUT_RPS</code></td>
+<td>10</td>
+<td>Minimum throughput in requests per second</td>
+</tr>
+<tr>
+<td><code>PERF_MAX_RETRY_RATE</code></td>
+<td>5.0</td>
+<td>Maximum retry rate in percentage</td>
+</tr>
+</tbody></table>
+<h3>Integration Settings</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SLACK_WEBHOOK_URL</code></td>
+<td>-</td>
+<td>Slack webhook URL for notifications</td>
+</tr>
+<tr>
+<td><code>PERF_ENABLE_SLACK</code></td>
+<td>true</td>
+<td>Enable/disable Slack notifications</td>
+</tr>
+<tr>
+<td><code>PERF_BASELINE_FILE</code></td>
+<td>performance-baseline.json</td>
+<td>Baseline metrics file path</td>
+</tr>
+</tbody></table>
+<h2>Test Type Configurations</h2>
+<h3>Baseline Test</h3>
+<pre><code class="language-bash">PERF_P95_MS=3000
+PERF_ERROR_RATE=1.0
+PERF_SCENARIO_ERROR_RATE=1.0
+PERF_SERVER_ERROR_RATE=2.0
+
+Stress Test
+
+PERF_P95_MS=5000
+PERF_ERROR_RATE=2.0
+PERF_SCENARIO_ERROR_RATE=2.0
+PERF_SERVER_ERROR_RATE=2.0
+
+Health Check
+PERF_P95_MS=2000
+PERF_ERROR_RATE=0.1
+PERF_SCENARIO_ERROR_RATE=0.1
+PERF_SERVER_ERROR_RATE=1.0
+
+Usage Examples
+
+Manual Threshold Check
+# Check latest results with baseline thresholds
+export PERF_P95_MS=3000
+export PERF_ERROR_RATE=1.0
+npm run perf:check:latest
+
+# Check specific file with stress thresholds
+export PERF_P95_MS=5000
+export PERF_ERROR_RATE=2.0
+node scripts/performance-regression-check.js artifacts/stress-2024-01-15.json
+
+CI/CD Integration
+
+# In GitHub Actions
+env:
+  PERF_P95_MS: 3000
+  PERF_ERROR_RATE: 1.0
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+- name: Performance Threshold Check
+  run: node scripts/performance-regression-check.js artifacts/results.json
+
+Threshold Logic
+Critical Failures (Block Deployment)
+    P95 Latency exceeds threshold
+    Error Rate exceeds threshold
+    Server Error Rate exceeds threshold
+    Scenario Failure Rate exceeds threshold
+Warnings (Monitor Only)
+    Throughput below minimum
+    Retry Rate above maximum
+Regression Detection
+    20% degradation from baseline triggers alert
+    50% degradation considered critical
+
+
+Notification Format
+Slack Notification
+{
+  &quot;username&quot;: &quot;Performance Bot&quot;,
+  &quot;icon_emoji&quot;: &quot;:chart_with_upwards_trend:&quot;,
+  &quot;attachments&quot;: [{
+    &quot;color&quot;: &quot;danger&quot;,
+    &quot;title&quot;: &quot;❌ Performance Threshold Check Failed&quot;,
+    &quot;fields&quot;: [
+      {&quot;title&quot;: &quot;P95 Latency&quot;, &quot;value&quot;: &quot;4500ms&quot;, &quot;short&quot;: true},
+      {&quot;title&quot;: &quot;Error Rate&quot;, &quot;value&quot;: &quot;2.5%&quot;, &quot;short&quot;: true}
+    ]
+  }]
+}
+
+GitHub Check Status
+    Success: All thresholds passed
+    Failure: One or more critical thresholds failed
+    Summary: Detailed breakdown with recommendations
+
+Troubleshooting
+Common Issues
+False Positives
+# Temporarily raise thresholds for investigation
+export PERF_P95_MS=6000
+export PERF_ERROR_RATE=3.0
+npm run perf:check:latest
+
+Missing Baseline
+# Reset baseline if corrupted
+rm performance-baseline.json
+npm run perf:check:latest  # Will create new baseline
+
+Slack Notifications Not Working
+# Test webhook URL
+curl -X POST -H &#39;Content-type: application/json&#39; \
+  --data &#39;{&quot;text&quot;:&quot;Test message&quot;}&#39; \
+  $SLACK_WEBHOOK_URL
+
+Debugging
+# Enable verbose output
+export DEBUG=perf:*
+npm run perf:check:latest
+
+# Check environment variables
+env | grep PERF_
+</code></pre>
+
+</div>
+</body>
+</html>

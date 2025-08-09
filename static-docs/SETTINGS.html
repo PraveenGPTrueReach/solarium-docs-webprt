@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SETTINGS.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Settings Management Documentation</h1>
+<h2>Overview</h2>
+<p>The Settings Management module provides a comprehensive system configuration interface for Solarium Web Portal administrators. This module allows real-time configuration of application parameters, feature flags, and system thresholds without requiring application restarts.</p>
+<h2>Features</h2>
+<h3>🎯 Core Capabilities</h3>
+<ul>
+<li><strong>Global Settings Management</strong>: Configure system-wide parameters</li>
+<li><strong>Feature Flag Control</strong>: Toggle application features in real-time</li>
+<li><strong>Numeric Thresholds</strong>: Set limits and boundaries for various operations</li>
+<li><strong>Audit Trail</strong>: Complete history of all configuration changes</li>
+<li><strong>Real-time Updates</strong>: Immediate propagation of changes across the application</li>
+</ul>
+<h3>🔐 Security Features</h3>
+<ul>
+<li><strong>Admin-only Access</strong>: Restricted to users with admin role</li>
+<li><strong>Input Validation</strong>: Server-side validation for all parameter updates</li>
+<li><strong>Audit Logging</strong>: Comprehensive change tracking with user attribution</li>
+<li><strong>Optimistic Updates</strong>: Immediate UI feedback with rollback on errors</li>
+<li><strong>CSP Compliance</strong>: Content Security Policy compliant implementation</li>
+</ul>
+<h2>Architecture</h2>
+<h3>Frontend Components</h3>
+<pre><code>src/
+├── components/settings/
+│   ├── SettingsPage.tsx          # Main settings container
+│   ├── GeneralSettingsForm.tsx   # Basic configuration form
+│   ├── FeatureFlagsForm.tsx      # Feature flag toggles
+│   ├── ThresholdSettingsForm.tsx # Numeric threshold settings
+│   ├── AuditLogTable.tsx         # Change history display
+│   └── schemas.ts                # Validation schemas
+├── hooks/
+│   ├── useAuditLogs.ts          # Audit log management hook
+│   └── useSettingsForm.ts       # Form state management
+├── api/endpoints/
+│   └── settingsEndpoints.ts     # RTK Query endpoints
+└── types/
+    └── settings.types.ts        # TypeScript definitions
+</code></pre>
+<h3>State Management</h3>
+<p>The Settings module uses a hybrid approach:</p>
+<ul>
+<li><strong>RTK Query</strong>: For API communication and caching</li>
+<li><strong>Local Slice</strong>: Non-persisted Redux slice for runtime state</li>
+<li><strong>React Context</strong>: Feature flag propagation to components</li>
+</ul>
+<pre><code class="language-typescript">// Settings are not persisted in Redux to ensure server authority
+const settingsSlice = createSlice({
+  name: &#39;settings&#39;,
+  initialState: defaultSettings,
+  reducers: {
+    syncSettingsFromApi: (state, action) =&gt; action.payload,
+    setFeatureFlagPending: (state, { payload }) =&gt; {
+      state.featureFlags[payload.flag] = payload.value;
+    },
+  },
+});
+</code></pre>
+<h2>API Endpoints</h2>
+<h3>GET /api/v1/settings</h3>
+<p>Retrieves current system settings.</p>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;sessionTimeoutMin&quot;: 30,
+  &quot;tokenExpiryMin&quot;: 60,
+  &quot;featureFlags&quot;: {
+    &quot;ADVANCED_REPORTING&quot;: true,
+    &quot;ANALYTICS&quot;: false,
+    &quot;DEBUG_MODE&quot;: false
+  },
+  &quot;thresholds&quot;: {
+    &quot;MAX_LEADS_PER_PAGE&quot;: 50,
+    &quot;SESSION_WARNING_MIN&quot;: 5
+  },
+  &quot;enableNotifications&quot;: true,
+  &quot;enableAnalytics&quot;: true,
+  &quot;enableDebugMode&quot;: false,
+  &quot;lastUpdated&quot;: &quot;2024-01-15T10:30:00Z&quot;,
+  &quot;updatedBy&quot;: &quot;admin@solarium.com&quot;
+}
+</code></pre>
+<h3>PATCH /api/v1/settings</h3>
+<p>Updates system settings (Admin only).</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;sessionTimeoutMin&quot;: 45,
+  &quot;featureFlags&quot;: {
+    &quot;ADVANCED_REPORTING&quot;: false
+  }
+}
+</code></pre>
+<p><strong>Response:</strong> Updated settings object</p>
+<h3>GET /api/v1/settings/audit</h3>
+<p>Retrieves audit log with pagination.</p>
+<p><strong>Query Parameters:</strong></p>
+<ul>
+<li><code>page</code>: Page number (default: 1)</li>
+<li><code>limit</code>: Items per page (default: 10)</li>
+<li><code>field</code>: Filter by field name</li>
+<li><code>userId</code>: Filter by user ID</li>
+<li><code>dateFrom</code>: Start date filter</li>
+<li><code>dateTo</code>: End date filter</li>
+</ul>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;logs&quot;: [
+    {
+      &quot;id&quot;: &quot;1&quot;,
+      &quot;userId&quot;: &quot;admin-123&quot;,
+      &quot;userName&quot;: &quot;Admin User&quot;,
+      &quot;field&quot;: &quot;sessionTimeoutMin&quot;,
+      &quot;oldValue&quot;: 30,
+      &quot;newValue&quot;: 45,
+      &quot;timestamp&quot;: &quot;2024-01-15T10:30:00Z&quot;,
+      &quot;ipAddress&quot;: &quot;192.168.1.1&quot;,
+      &quot;userAgent&quot;: &quot;Mozilla/5.0...&quot;
+    }
+  ],
+  &quot;total&quot;: 25,
+  &quot;page&quot;: 1,
+  &quot;limit&quot;: 10,
+  &quot;totalPages&quot;: 3
+}
+</code></pre>
+<h2>Configuration Categories</h2>
+<h3>1. General Settings</h3>
+<ul>
+<li><strong>Session Timeout</strong>: User session duration (5-1440 minutes)</li>
+<li><strong>Token Expiry</strong>: JWT token validity period (15-4320 minutes)</li>
+<li><strong>Notifications</strong>: Global notification settings</li>
+</ul>
+<h3>2. Feature Flags</h3>
+<p>Runtime toggles for application features:</p>
+<ul>
+<li><code>ADVANCED_REPORTING</code>: Enable advanced analytics</li>
+<li><code>ANALYTICS</code>: Enable usage tracking</li>
+<li><code>DEBUG_MODE</code>: Enable debug information (restricted)</li>
+<li><code>BULK_OPERATIONS</code>: Enable bulk data operations</li>
+</ul>
+<h3>3. Thresholds</h3>
+<p>Numeric limits for various operations:</p>
+<ul>
+<li><code>MAX_LEADS_PER_PAGE</code>: Pagination limit for leads</li>
+<li><code>SESSION_WARNING_MIN</code>: Minutes before session warning</li>
+<li><code>MAX_FILE_SIZE_MB</code>: Maximum file upload size</li>
+</ul>
+<h3>4. Security Settings</h3>
+<ul>
+<li>Authentication timeouts</li>
+<li>Rate limiting parameters</li>
+<li>Security feature toggles</li>
+</ul>
+<h2>Usage Examples</h2>
+<h3>Basic Settings Update</h3>
+<pre><code class="language-typescript">import { useUpdateSettingsMutation } from &#39;../api/endpoints/settingsEndpoints&#39;;
+
+const [updateSettings, { isLoading }] = useUpdateSettingsMutation();
+
+const handleSave = async () =&gt; {
+  try {
+    await updateSettings({
+      sessionTimeoutMin: 45,
+      enableNotifications: true,
+    }).unwrap();
+    toast.success(&#39;Settings saved successfully&#39;);
+  } catch (error) {
+    toast.error(&#39;Failed to save settings&#39;);
+  }
+};
+</code></pre>
+<h3>Feature Flag Toggle</h3>
+<pre><code class="language-typescript">import { useUpdateFeatureFlagMutation } from &#39;../api/endpoints/settingsEndpoints&#39;;
+
+const [updateFeatureFlag] = useUpdateFeatureFlagMutation();
+
+const handleToggleFlag = async (flag: string, value: boolean) =&gt; {
+  try {
+    await updateFeatureFlag({ flag, value }).unwrap();
+  } catch (error) {
+    // Optimistic update will be rolled back automatically
+    console.error(&#39;Failed to update feature flag:&#39;, error);
+  }
+};
+</code></pre>
+<h3>Audit Log Display</h3>
+<pre><code class="language-typescript">import { useAuditLogs } from &#39;../hooks/useAuditLogs&#39;;
+
+const AuditLogComponent = () =&gt; {
+  const {
+    logs,
+    total,
+    page,
+    setPage,
+    isLoading,
+  } = useAuditLogs({
+    initialPageSize: 10,
+  });
+
+  return (
+    &lt;AuditLogTable
+      logs={logs}
+      total={total}
+      page={page}
+      onPageChange={setPage}
+      isLoading={isLoading}
+    /&gt;
+  );
+};
+</code></pre>
+<h2>Validation Rules</h2>
+<h3>Numeric Validation</h3>
+<pre><code class="language-typescript">const settingsSchema = yup.object({
+  sessionTimeoutMin: yup
+    .number()
+    .min(5, &#39;Minimum 5 minutes&#39;)
+    .max(1440, &#39;Maximum 24 hours&#39;)
+    .required(),
+  tokenExpiryMin: yup
+    .number()
+    .min(15, &#39;Minimum 15 minutes&#39;)
+    .max(4320, &#39;Maximum 3 days&#39;)
+    .required(),
+});
+</code></pre>
+<h3>Feature Flag Validation</h3>
+<ul>
+<li>Boolean values only</li>
+<li>Predefined flag names</li>
+<li>Admin-only restricted flags</li>
+</ul>
+<h2>Security Considerations</h2>
+<h3>Access Control</h3>
+<ul>
+<li>Settings endpoints require admin authentication</li>
+<li>JWT token validation on every request</li>
+<li>Role-based access control (RBAC)</li>
+</ul>
+<h3>Input Validation</h3>
+<ul>
+<li>Server-side validation for all inputs</li>
+<li>Numeric range validation</li>
+<li>XSS prevention in audit log display</li>
+<li>CSRF protection</li>
+</ul>
+<h3>Audit Trail</h3>
+<ul>
+<li>Complete change history</li>
+<li>User attribution for all changes</li>
+<li>IP address and user agent logging</li>
+<li>Timestamp precision to milliseconds</li>
+</ul>
+<h2>Performance Optimizations</h2>
+<h3>Caching Strategy</h3>
+<ul>
+<li>RTK Query automatic caching</li>
+<li>60-second cache retention</li>
+<li>Optimistic updates for immediate UI response</li>
+<li>Tag-based cache invalidation</li>
+</ul>
+<h3>Lazy Loading</h3>
+<ul>
+<li>Settings page loaded as separate chunk</li>
+<li>React.lazy for code splitting</li>
+<li>Virtualized tables for large audit logs</li>
+</ul>
+<h3>Real-time Updates</h3>
+<ul>
+<li>Feature flags propagated via React Context</li>
+<li>No page refresh required for changes</li>
+<li>Automatic rollback on API failures</li>
+</ul>
+<h2>Testing Strategy</h2>
+<h3>Unit Tests</h3>
+<ul>
+<li>Component rendering and interactions</li>
+<li>Hook functionality and state management</li>
+<li>API endpoint mocking with MSW</li>
+<li>Form validation logic</li>
+</ul>
+<h3>Integration Tests</h3>
+<ul>
+<li>Complete user workflows</li>
+<li>API communication patterns</li>
+<li>Error handling scenarios</li>
+<li>Access control enforcement</li>
+</ul>
+<h3>E2E Tests</h3>
+<ul>
+<li>Admin login → settings navigation → flag toggle → audit verification</li>
+<li>Cross-component feature flag propagation</li>
+<li>Error recovery and rollback scenarios</li>
+</ul>
+<h2>Troubleshooting</h2>
+<h3>Common Issues</h3>
+<ol>
+<li><p><strong>Settings not saving</strong></p>
+<ul>
+<li>Check admin role assignment</li>
+<li>Verify JWT token validity</li>
+<li>Check network connectivity</li>
+</ul>
+</li>
+<li><p><strong>Feature flags not updating</strong></p>
+<ul>
+<li>Verify optimistic update logic</li>
+<li>Check for API errors in console</li>
+<li>Ensure proper React Context integration</li>
+</ul>
+</li>
+<li><p><strong>Audit log not showing changes</strong></p>
+<ul>
+<li>Check audit endpoint permissions</li>
+<li>Verify pagination parameters</li>
+<li>Check date filters</li>
+</ul>
+</li>
+</ol>
+<h3>Debug Tools</h3>
+<pre><code class="language-typescript">// Access API utilities in development
+if (process.env.NODE_ENV === &#39;development&#39;) {
+  window.__SETTINGS_DEBUG__ = {
+    getCurrentSettings: () =&gt; store.getState().settings,
+    clearCache: () =&gt; store.dispatch(apiSlice.util.resetApiState()),
+    getAuditLogs: () =&gt; auditLogsQuery.data,
+  };
+}
+</code></pre>
+<h2>Migration and Deployment</h2>
+<h3>Environment Variables</h3>
+<pre><code class="language-bash"># Required for settings functionality
+VITE_SETTINGS_CACHE_TTL=60
+VITE_AUDIT_LOG_RETENTION_DAYS=90
+VITE_FEATURE_FLAG_POLLING_INTERVAL=30000
+</code></pre>
+<h3>Database Considerations</h3>
+<ul>
+<li>Settings stored in dedicated table</li>
+<li>Audit logs with proper indexing</li>
+<li>Backup strategy for configuration data</li>
+</ul>
+<h3>Rollback Procedures</h3>
+<ul>
+<li>Feature flag immediate rollback capability</li>
+<li>Settings version history</li>
+<li>Emergency disable procedures</li>
+</ul>
+<h2>Future Enhancements</h2>
+<h3>Planned Features</h3>
+<ul>
+<li>Bulk settings import/export</li>
+<li>Settings templates and presets</li>
+<li>Advanced audit log filtering</li>
+<li>Real-time collaboration indicators</li>
+<li>Settings approval workflow</li>
+</ul>
+<h3>Performance Improvements</h3>
+<ul>
+<li>Settings caching at CDN level</li>
+<li>Batch update operations</li>
+<li>WebSocket for real-time updates</li>
+<li>Progressive loading for large configurations</li>
+</ul>
+<hr>
+<p>For technical support or feature requests, contact the development team or create an issue in the project repository. </p>
+
+</div>
+</body>
+</html>

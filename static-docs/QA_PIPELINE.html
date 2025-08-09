@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>QA_PIPELINE.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>QA Pipeline Documentation</h1>
+<h2>Overview</h2>
+<p>This document outlines the comprehensive Quality Assurance pipeline for the Solarium Web Portal, including testing strategies, coverage requirements, and automation processes.</p>
+<h2>Test Coverage Requirements</h2>
+<h3>Current Coverage Status</h3>
+<p><img src="https://img.shields.io/badge/coverage-85%25-brightgreen" alt="Coverage Badge">
+<img src="https://img.shields.io/badge/statements-85%25-brightgreen" alt="Statements">
+<img src="https://img.shields.io/badge/branches-82%25-green" alt="Branches">
+<img src="https://img.shields.io/badge/functions-88%25-brightgreen" alt="Functions">
+<img src="https://img.shields.io/badge/lines-86%25-brightgreen" alt="Lines"></p>
+<h3>Coverage Thresholds</h3>
+<h4>Global Requirements</h4>
+<ul>
+<li><strong>Overall Coverage</strong>: ≥80%</li>
+<li><strong>Statement Coverage</strong>: ≥80%</li>
+<li><strong>Branch Coverage</strong>: ≥80%</li>
+<li><strong>Function Coverage</strong>: ≥80%</li>
+<li><strong>Line Coverage</strong>: ≥80%</li>
+</ul>
+<h4>Component-Specific Requirements</h4>
+<pre><code class="language-javascript">{
+  // Critical security components
+  &#39;src/routes/ProtectedRoute.tsx&#39;: {
+    branches: 100,
+    functions: 100,
+    lines: 95,
+    statements: 95,
+  },
+  
+  // Security utilities
+  &#39;src/utils/security.ts&#39;: {
+    branches: 90,
+    functions: 90,
+    lines: 90,
+    statements: 90,
+  },
+  
+  // Core layout components
+  &#39;src/layout/Sidebar.tsx&#39;: {
+    branches: 85,
+    functions: 85,
+    lines: 85,
+    statements: 85,
+  },
+  
+  // Dashboard components
+  &#39;src/pages/Dashboard.tsx&#39;: {
+    branches: 85,
+    functions: 85,
+    lines: 85,
+    statements: 85,
+  },
+  
+  // UI components
+  &#39;src/components/**/*.tsx&#39;: {
+    branches: 85,
+    functions: 85,
+    lines: 85,
+    statements: 85,
+  },
+  
+  // API and store logic
+  &#39;src/api/**/*.ts&#39;: {
+    branches: 85,
+    functions: 85,
+    lines: 85,
+    statements: 85,
+  },
+  
+  &#39;src/store/**/*.ts&#39;: {
+    branches: 80,
+    functions: 80,
+    lines: 80,
+    statements: 80,
+  },
+  
+  // Utilities
+  &#39;src/utils/**/*.ts&#39;: {
+    branches: 90,
+    functions: 90,
+    lines: 90,
+    statements: 90,
+  },
+}
+</code></pre>
+<h2>Testing Strategies</h2>
+<h3>1. Unit Testing</h3>
+<p><strong>Framework</strong>: Vitest + React Testing Library</p>
+<p><strong>Scope:</strong></p>
+<ul>
+<li>Component logic and rendering</li>
+<li>Custom hooks functionality</li>
+<li>Utility functions</li>
+<li>State management (Redux slices)</li>
+<li>API endpoint logic</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Component unit test
+describe(&#39;PlaceholderCard&#39;, () =&gt; {
+  it(&#39;renders with required props&#39;, () =&gt; {
+    render(&lt;PlaceholderCard title=&quot;Test Title&quot; /&gt;);
+    expect(screen.getByText(&#39;Test Title&#39;)).toBeInTheDocument();
+  });
+});
+</code></pre>
+<h3>2. Integration Testing</h3>
+<p><strong>Framework</strong>: Vitest + MSW (Mock Service Worker)</p>
+<p><strong>Scope:</strong></p>
+<ul>
+<li>API integration with components</li>
+<li>Redux store integration</li>
+<li>Route protection flows</li>
+<li>Authentication workflows</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// API integration test
+describe(&#39;Dashboard API Integration&#39;, () =&gt; {
+  it(&#39;loads and displays metrics&#39;, async () =&gt; {
+    renderWithProviders(&lt;Dashboard /&gt;);
+    await waitFor(() =&gt; {
+      expect(screen.getByText(&#39;25&#39;)).toBeInTheDocument();
+    });
+  });
+});
+</code></pre>
+<h3>3. Accessibility Testing</h3>
+<p><strong>Framework</strong>: jest-axe + Manual Testing</p>
+<p><strong>Scope:</strong></p>
+<ul>
+<li>WCAG 2.1 AA compliance</li>
+<li>Keyboard navigation</li>
+<li>Screen reader compatibility</li>
+<li>Color contrast validation</li>
+<li>Focus management</li>
+</ul>
+<p><strong>Coverage Target</strong>: 0 violations on critical user paths</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Accessibility test
+it(&#39;should not have accessibility violations&#39;, async () =&gt; {
+  const { container } = render(&lt;Dashboard /&gt;);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+</code></pre>
+<h3>4. End-to-End Testing (Future)</h3>
+<p><strong>Framework</strong>: Playwright (planned)</p>
+<p><strong>Scope:</strong></p>
+<ul>
+<li>Complete user workflows</li>
+<li>Cross-browser compatibility</li>
+<li>Performance testing</li>
+<li>Visual regression testing</li>
+</ul>
+<h2>Automation Pipeline</h2>
+<h3>Pre-commit Hooks</h3>
+<pre><code class="language-bash"># Husky configuration
+.husky/pre-commit:
+- npm run lint
+- npm run type-check
+- npm run test:changed
+
+.husky/pre-push:
+- npm run test:coverage
+- npm run test:a11y
+- npm run build
+</code></pre>
+<h3>CI/CD Pipeline</h3>
+<h4>Pull Request Checks</h4>
+<ol>
+<li><strong>Linting</strong>: ESLint + Prettier</li>
+<li><strong>Type Checking</strong>: TypeScript strict mode</li>
+<li><strong>Unit Tests</strong>: All tests must pass</li>
+<li><strong>Coverage Check</strong>: Must meet thresholds</li>
+<li><strong>Accessibility</strong>: Zero violations on modified components</li>
+<li><strong>Security</strong>: ESLint security rules</li>
+<li><strong>Build</strong>: Production build must succeed</li>
+</ol>
+<h4>Deployment Pipeline</h4>
+<ol>
+<li><strong>All PR checks pass</strong></li>
+<li><strong>Integration tests in staging</strong></li>
+<li><strong>Performance benchmarks</strong></li>
+<li><strong>Security scans</strong></li>
+<li><strong>Manual QA approval</strong></li>
+<li><strong>Production deployment</strong></li>
+</ol>
+<h2>Quality Gates</h2>
+<h3>Code Quality</h3>
+<ul>
+<li><strong>ESLint Score</strong>: 0 errors, 0 warnings</li>
+<li><strong>TypeScript</strong>: Strict mode, 0 errors</li>
+<li><strong>Prettier</strong>: Consistent formatting</li>
+<li><strong>Security</strong>: ESLint security plugin passing</li>
+</ul>
+<h3>Test Quality</h3>
+<ul>
+<li><strong>Coverage Thresholds</strong>: All met</li>
+<li><strong>Test Performance</strong>: &lt;30s total execution</li>
+<li><strong>Flaky Tests</strong>: &lt;1% failure rate</li>
+<li><strong>Test Maintenance</strong>: Regular review and updates</li>
+</ul>
+<h3>Accessibility Quality</h3>
+<ul>
+<li><strong>Automated</strong>: jest-axe 0 violations</li>
+<li><strong>Manual</strong>: Keyboard navigation verified</li>
+<li><strong>Screen Reader</strong>: NVDA/JAWS compatibility</li>
+<li><strong>Color Contrast</strong>: WCAG AA compliance</li>
+</ul>
+<h3>Performance Quality</h3>
+<ul>
+<li><strong>Bundle Size</strong>: &lt;500KB gzipped</li>
+<li><strong>Load Time</strong>: &lt;3s on 3G</li>
+<li><strong>Core Web Vitals</strong>: All &quot;Good&quot; ratings</li>
+<li><strong>Lighthouse Score</strong>: ≥90 overall</li>
+</ul>
+<h2>Test Categories</h2>
+<h3>1. Smoke Tests</h3>
+<p>Quick validation of core functionality:</p>
+<ul>
+<li>Application loads without errors</li>
+<li>Authentication flow works</li>
+<li>Main navigation functions</li>
+<li>Critical API endpoints respond</li>
+</ul>
+<h3>2. Regression Tests</h3>
+<p>Prevent breaking changes:</p>
+<ul>
+<li>All existing functionality preserved</li>
+<li>API contract compliance</li>
+<li>UI component consistency</li>
+<li>Security controls maintained</li>
+</ul>
+<h3>3. Performance Tests</h3>
+<p>Ensure application performance:</p>
+<ul>
+<li>Bundle size monitoring</li>
+<li>Runtime performance</li>
+<li>Memory usage</li>
+<li>API response times</li>
+</ul>
+<h3>4. Security Tests</h3>
+<p>Validate security measures:</p>
+<ul>
+<li>Authentication bypass attempts</li>
+<li>Authorization edge cases</li>
+<li>Input validation</li>
+<li>XSS prevention</li>
+</ul>
+<h2>Reporting and Metrics</h2>
+<h3>Coverage Reports</h3>
+<ul>
+<li><strong>HTML Report</strong>: Detailed file-by-file coverage</li>
+<li><strong>JSON Summary</strong>: Machine-readable metrics</li>
+<li><strong>Badge Generation</strong>: README status badges</li>
+<li><strong>Trend Analysis</strong>: Coverage over time</li>
+</ul>
+<h3>Test Reports</h3>
+<ul>
+<li><strong>JUnit XML</strong>: CI/CD integration</li>
+<li><strong>Console Output</strong>: Developer feedback</li>
+<li><strong>Failed Test Details</strong>: Debug information</li>
+<li><strong>Performance Metrics</strong>: Execution times</li>
+</ul>
+<h3>Accessibility Reports</h3>
+<ul>
+<li><strong>Axe Results</strong>: Detailed violation reports</li>
+<li><strong>WCAG Compliance</strong>: Standards adherence</li>
+<li><strong>Manual Test Results</strong>: User testing outcomes</li>
+<li><strong>Improvement Recommendations</strong>: Action items</li>
+</ul>
+<h2>Tools and Configuration</h2>
+<h3>Testing Tools</h3>
+<pre><code class="language-json">{
+  &quot;vitest&quot;: &quot;^0.34.6&quot;,
+  &quot;@testing-library/react&quot;: &quot;^13.4.0&quot;,
+  &quot;@testing-library/jest-dom&quot;: &quot;^6.1.4&quot;,
+  &quot;@testing-library/user-event&quot;: &quot;^14.5.1&quot;,
+  &quot;jest-axe&quot;: &quot;^8.0.0&quot;,
+  &quot;axe-core&quot;: &quot;^4.8.2&quot;,
+  &quot;msw&quot;: &quot;^1.3.2&quot;
+}
+</code></pre>
+<h3>Configuration Files</h3>
+<ul>
+<li><code>vitest.config.ts</code>: Test runner configuration</li>
+<li><code>jest.config.cjs</code>: Jest compatibility</li>
+<li><code>scripts/coverage-threshold.js</code>: Coverage requirements</li>
+<li><code>.eslintrc.cjs</code>: Linting rules including security</li>
+</ul>
+<h3>CI/CD Integration</h3>
+<pre><code class="language-yaml"># GitHub Actions example
+name: QA Pipeline
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: &#39;18&#39;
+          cache: &#39;npm&#39;
+      
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test:coverage
+      - run: npm run test:a11y
+      - run: npm run build
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+</code></pre>
+<h2>Manual Testing Procedures</h2>
+<h3>Accessibility Testing Checklist</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Keyboard Navigation</strong>: Tab through all interactive elements</li>
+<li><input disabled="" type="checkbox"> <strong>Screen Reader</strong>: Test with NVDA/JAWS/VoiceOver</li>
+<li><input disabled="" type="checkbox"> <strong>Color Contrast</strong>: Verify 4.5:1 ratio for normal text</li>
+<li><input disabled="" type="checkbox"> <strong>Focus Indicators</strong>: Visible focus on all interactive elements</li>
+<li><input disabled="" type="checkbox"> <strong>Heading Structure</strong>: Logical h1-h6 hierarchy</li>
+<li><input disabled="" type="checkbox"> <strong>Form Labels</strong>: All inputs properly labeled</li>
+<li><input disabled="" type="checkbox"> <strong>Error Messages</strong>: Clear and accessible error handling</li>
+<li><input disabled="" type="checkbox"> <strong>Live Regions</strong>: Dynamic content updates announced</li>
+</ul>
+<h3>Browser Compatibility Testing</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Chrome</strong>: Latest 2 versions</li>
+<li><input disabled="" type="checkbox"> <strong>Firefox</strong>: Latest 2 versions</li>
+<li><input disabled="" type="checkbox"> <strong>Safari</strong>: Latest 2 versions</li>
+<li><input disabled="" type="checkbox"> <strong>Edge</strong>: Latest version</li>
+<li><input disabled="" type="checkbox"> <strong>Mobile Safari</strong>: iOS latest</li>
+<li><input disabled="" type="checkbox"> <strong>Chrome Mobile</strong>: Android latest</li>
+</ul>
+<h3>Responsive Design Testing</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Desktop</strong>: 1920x1080, 1366x768</li>
+<li><input disabled="" type="checkbox"> <strong>Tablet</strong>: 768x1024, 1024x768</li>
+<li><input disabled="" type="checkbox"> <strong>Mobile</strong>: 375x667, 414x896, 360x640</li>
+<li><input disabled="" type="checkbox"> <strong>Large Screens</strong>: 2560x1440, 3840x2160</li>
+</ul>
+<h2>Performance Testing</h2>
+<h3>Metrics to Monitor</h3>
+<ul>
+<li><strong>First Contentful Paint (FCP)</strong>: &lt;1.8s</li>
+<li><strong>Largest Contentful Paint (LCP)</strong>: &lt;2.5s</li>
+<li><strong>First Input Delay (FID)</strong>: &lt;100ms</li>
+<li><strong>Cumulative Layout Shift (CLS)</strong>: &lt;0.1</li>
+<li><strong>Time to Interactive (TTI)</strong>: &lt;3.8s</li>
+</ul>
+<h3>Performance Testing Tools</h3>
+<ul>
+<li><strong>Lighthouse</strong>: Automated performance audits</li>
+<li><strong>WebPageTest</strong>: Real-world performance testing</li>
+<li><strong>Chrome DevTools</strong>: Performance profiling</li>
+<li><strong>Bundle Analyzer</strong>: Code splitting analysis</li>
+</ul>
+<h2>Test Data Management</h2>
+<h3>Mock Data Strategy</h3>
+<ul>
+<li><strong>MSW</strong>: API response mocking</li>
+<li><strong>Factories</strong>: Test data generation</li>
+<li><strong>Fixtures</strong>: Static test datasets</li>
+<li><strong>Cleanup</strong>: Automatic test isolation</li>
+</ul>
+<h3>Test Database</h3>
+<ul>
+<li><strong>In-Memory</strong>: Fast test execution</li>
+<li><strong>Seeding</strong>: Consistent test data</li>
+<li><strong>Cleanup</strong>: Automatic reset between tests</li>
+<li><strong>Snapshots</strong>: State preservation for complex scenarios</li>
+</ul>
+<h2>Continuous Improvement</h2>
+<h3>Monthly QA Reviews</h3>
+<ul>
+<li><strong>Coverage Trends</strong>: Identify areas needing attention</li>
+<li><strong>Test Performance</strong>: Optimize slow tests</li>
+<li><strong>Flaky Tests</strong>: Investigate and fix unstable tests</li>
+<li><strong>Tool Updates</strong>: Keep testing dependencies current</li>
+</ul>
+<h3>Quarterly Assessments</h3>
+<ul>
+<li><strong>Accessibility Audit</strong>: Professional accessibility review</li>
+<li><strong>Performance Benchmarks</strong>: Real-world performance testing</li>
+<li><strong>Security Review</strong>: Penetration testing and code review</li>
+<li><strong>User Testing</strong>: Usability and feedback sessions</li>
+</ul>
+<h2>Troubleshooting</h2>
+<h3>Common Test Issues</h3>
+<ol>
+<li><p><strong>Flaky Tests</strong>: Usually timing or async issues</p>
+<ul>
+<li>Use <code>waitFor</code> for async operations</li>
+<li>Mock external dependencies</li>
+<li>Increase timeouts for slow operations</li>
+</ul>
+</li>
+<li><p><strong>Coverage Gaps</strong>: Missing test scenarios</p>
+<ul>
+<li>Review coverage reports</li>
+<li>Add tests for uncovered branches</li>
+<li>Focus on error handling paths</li>
+</ul>
+</li>
+<li><p><strong>Accessibility Violations</strong>: axe-core findings</p>
+<ul>
+<li>Review specific violations</li>
+<li>Fix ARIA and semantic HTML issues</li>
+<li>Add proper labels and descriptions</li>
+</ul>
+</li>
+</ol>
+<h3>Debug Commands</h3>
+<pre><code class="language-bash"># Verbose test output
+npm run test -- --verbose
+
+# Coverage report with details
+npm run test:coverage -- --reporter=verbose
+
+# Accessibility report
+npm run test:a11y -- --verbose
+
+# Debug specific test file
+npm run test -- --run Dashboard.test.tsx
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+<li><a href="https://vitest.dev/">Vitest Documentation</a></li>
+<li><a href="https://testing-library.com/docs/react-testing-library/intro/">React Testing Library</a></li>
+<li><a href="https://github.com/nickcolley/jest-axe">jest-axe Documentation</a></li>
+<li><a href="https://www.w3.org/WAI/WCAG21/quickref/">WCAG 2.1 Guidelines</a></li>
+</ul>
+<h3>Internal Links</h3>
+<ul>
+<li><a href="./TESTING.md">Testing Guidelines</a></li>
+<li><a href="./ACCESSIBILITY.md">Accessibility Standards</a></li>
+<li><a href="./BUILD.md">Build Documentation</a></li>
+<li><a href="./API_TERRITORY.md">API Documentation</a></li>
+</ul>
+<hr>
+<p>This QA pipeline ensures high-quality, accessible, and maintainable code through comprehensive automated testing and quality gates. </p>
+
+</div>
+</body>
+</html>

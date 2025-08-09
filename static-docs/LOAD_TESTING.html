@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LOAD_TESTING.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Load Testing Guide</h1>
+<h2>Overview</h2>
+<p>This guide covers the complete load testing setup for Solarium Web Portal, including k6 performance tests, monitoring stack, automated reporting, and CI/CD integration.</p>
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#setup--installation">Setup &amp; Installation</a></li>
+<li><a href="#test-execution">Test Execution</a></li>
+<li><a href="#monitoring--dashboards">Monitoring &amp; Dashboards</a></li>
+<li><a href="#secret-management">Secret Management</a></li>
+<li><a href="#test-data--cleanup">Test Data &amp; Cleanup</a></li>
+<li><a href="#cicd-integration">CI/CD Integration</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#advanced-usage">Advanced Usage</a></li>
+</ul>
+<hr>
+<h2>Quick Start</h2>
+<h3>Prerequisites</h3>
+<ul>
+<li>Docker &amp; Docker Compose</li>
+<li>Node.js 18+ with npm</li>
+<li>Git CLI (for CI integration)</li>
+</ul>
+<h3>Run Your First Load Test</h3>
+<pre><code class="language-bash"># 1. Start monitoring stack
+npm run monitoring:up
+
+# 2. Set environment variables
+export K6_BASE_URL=http://localhost:3000
+export K6_CP_USER=test_user
+export K6_CP_PASS=test_password
+
+# 3. Run health check
+npm run k6:health
+
+# 4. Open dashboard
+npm run grafana:open
+
+Architecture
+System Components
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│       k6        │───▶│    InfluxDB     │───▶│     Grafana     │
+│  Load Testing   │    │   Metrics DB    │    │   Dashboard     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Target API    │    │  Azure Monitor  │    │   GitHub CI     │
+│ (Staging/Prod)  │    │  (Resource      │    │  (Automated     │
+│                 │    │   Monitoring)   │    │   Reports)      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+
+Data Flow
+k6 executes load tests against target APIs
+Metrics flow to InfluxDB for storage
+Grafana visualizes real-time performance data
+Azure Monitor provides server resource metrics
+GitHub CI generates automated reports
+
+Test Types
+Health Check: Quick API connectivity validation
+Baseline: Standard 400 VU load test (30 minutes)
+Stress: Multi-stage stress test (0→800→600→400 VUs, 69 minutes)
+
+
+Setup &amp; Installation
+Local Development Setup
+1. Install Dependencies
+
+# Install Node.js dependencies
+npm install
+
+# Verify Docker is running
+docker --version
+docker compose --version
+
+2. Environment Configuration
+# Copy example environment file
+cp config/k6.secrets.example config/k6.secrets.local
+
+# Edit with your credentials
+nano config/k6.secrets.local
+
+# Source the configuration
+source config/k6.secrets.local
+
+3. Verify Installation
+# Test k6 tooling
+# Test k6 tooling
+npm run k6 -- --version
+
+# Test monitoring stack
+npm run monitoring:up
+curl http://localhost:3001/api/health  # Grafana
+curl http://localhost:8086/ping        # InfluxDB
+
+Production/CI Setup
+1. GitHub Secrets Configuration
+Required secrets in repository settings:
+K6_CP_USER=cp_load_test_user
+K6_CP_PASS=secure_password_123
+K6_ADMIN_USER=admin_load_test_user
+K6_ADMIN_PASS=secure_admin_password_456
+K6_KAM_USER=kam_load_test_user
+K6_KAM_PASS=secure_kam_password_789
+K6_STAGING_BASE_URL=https://staging-api.solarium.com
+K6_PROD_BASE_URL=https://api.solarium.com
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+
+2. CI/CD Pipeline
+The load testing pipeline runs automatically:
+
+Nightly: Baseline tests at 02:00 UTC
+Manual: On-demand via GitHub Actions
+Reports: Auto-committed to perf-reports branch
+
+Test Execution
+Available Test Scripts
+| Command | Description | Duration | VUs | |---------|-------------|----------|-----| | npm run k6:health | API health check | 30 seconds | 1 | | npm run k6:baseline | Standard load test | 37 minutes | 400 | | npm run k6:stress | Multi-stage stress test | 69 minutes | 0→800→600→400 | | npm run k6:baseline:parse | Parse latest baseline results | - | - | | npm run k6:stress:parse | Parse latest stress results | - | - |
+
+Test Execution Examples
+Basic Health Check
+# Quick API validation
+export K6_BASE_URL=https://staging-api.solarium.com
+export K6_CP_USER=test_user
+export K6_CP_PASS=test_password
+
+npm run k6:health
+
+Baseline Load Test
+# 400 VUs for 30 minutes
+export K6_OUT=influxdb=http://localhost:8086/k6
+npm run monitoring:up
+npm run k6:baseline
+
+# Parse results
+npm run k6:baseline:parse
+
+Stress Test
+# Multi-stage stress test
+npm run monitoring:up
+npm run k6:stress
+
+# Generate performance report
+npm run perf:report:stress
+
+Test Parameters
+Environment Variables
+    K6_BASE_URL: Target API base URL
+    K6_OUT: Metrics output (e.g., influxdb=http://localhost:8086/k6)
+    K6_BASELINE_SHORT=true: Run shortened version for testing
+    K6_STRESS_SHORT=true: Run shortened stress test
+
+User Credentials
+Configure test users for each role:
+    CP User: Channel Partner test account
+    Admin User: Admin test account
+    KAM User: Key Account Manager test account
+
+
+Monitoring &amp; Dashboards
+Grafana Dashboard
+Access Information
+    URL: http://localhost:3001
+    Credentials: admin/admin
+    Dashboard: Solarium Performance Dashboard
+Key Panels
+    Response Time Percentiles: P95, P99, Average latency
+    Throughput &amp; Virtual Users: RPS and active VUs
+    Error Breakdown: 4xx, 5xx, timeout categorization
+    Server Resources: CPU and memory utilization
+    Failure Rates: HTTP and scenario failure percentages
+    Retry Metrics: Retry attempts and patterns
+
+Dashboard Commands
+# Start monitoring stack
+npm run monitoring:up
+
+# Open dashboard
+npm run grafana:open
+
+# View logs
+npm run monitoring:logs
+
+# Stop monitoring
+npm run monitoring:down
+
+Metrics Collection
+InfluxDB Configuration
+
+# Database: k6
+# URL: http://localhost:8086
+# Credentials: k6/k6
+
+# Query metrics directly
+npm run influx:query &quot;SHOW MEASUREMENTS&quot;
+npm run influx:query &quot;SELECT * FROM http_req_duration LIMIT 10&quot;
+
+Custom Metrics
+Our tests collect enhanced metrics:
+
+scenario_iterations: User journey completions
+scenario_failure_rate: Business logic failures
+business_operation_duration: End-to-end operation timing
+stress_*: Stress test specific metrics
+soak_stability_rate: Stability during extended load
+
+Secret Management
+Security Checklist
+✅ Development Environment
+[ ] Use dedicated test accounts (not production)
+[ ] Store secrets in environment files (git-ignored)
+[ ] Rotate test passwords regularly
+[ ] Verify secrets are not logged or committed
+✅ CI/CD Environment
+[ ] Configure GitHub repository secrets
+[ ] Use least-privilege test accounts
+[ ] Enable secret scanning in repository
+[ ] Monitor test account usage
+✅ Production Testing
+[ ] Never use production credentials in tests
+[ ] Test against staging environment only
+[ ] Implement IP restrictions for test accounts
+[ ] Audit test access regularly
+
+Secret Rotation Process
+# 1. Update credentials in target system
+# 2. Update GitHub secrets
+gh secret set K6_CP_USER --body &quot;new_cp_user&quot;
+gh secret set K6_CP_PASS --body &quot;new_secure_password&quot;
+
+# 3. Test with new credentials
+npm run k6:health
+
+# 4. Update local development environment
+source config/k6.secrets.local
+
+Test Data &amp; Cleanup
+Data Tagging Strategy
+All test-generated data uses consistent prefixes:
+
+    Leads: k6-test-${testType}-${VU}-${iteration}-${timestamp}
+    Quotations: k6-${testType}-${VU}-${iteration}-${timestamp}
+    Customers: K6 Test Customer ${testType.toUpperCase()} ${VU}
+
+Cleanup Commands
+# Manual cleanup
+npm run k6:cleanup
+
+# Dry-run mode (preview only)
+npm run k6:cleanup -- --dry-run
+
+# Cleanup specific test type
+npm run k6:cleanup -- --test-type=baseline
+
+# Force cleanup (skip confirmations)
+npm run k6:cleanup -- --force
+
+
+Automated Cleanup
+CI Pipeline: Runs cleanup automatically after tests
+Retry Logic: Handles cleanup failures gracefully
+Logging: All cleanup actions are logged for audit
+
+Data Retention
+Test Results: 30 days in GitHub Actions
+Monitoring Data: Persistent in Docker volumes
+Performance Reports: Permanent in perf-reports branch
+
+CI/CD Integration
+GitHub Actions Workflow
+Trigger Methods
+# Manual trigger
+gh workflow run load-test.yml
+
+# With parameters
+gh workflow run load-test.yml \
+  --field test_type=baseline \
+  --field environment=staging \
+  --field duration_override=true
+
+# Scheduled (automatic)
+# Runs nightly at 02:00 UTC
+
+Workflow Stages
+    Pre-flight: Validate configuration and files
+    Setup: Configure secrets and environment
+    Execute: Run k6 tests with monitoring
+    Collect: Parse results and generate reports
+    Upload: Save artifacts and logs
+    Notify: Send Slack notifications
+Artifacts Generated
+    *-results.json: Complete test metrics
+    analysis-report.txt: Performance analysis
+    dashboard-links.md: Grafana access links
+    logs/: Container logs from test execution
+
+Performance Reports
+Report Generation
+# Generate from latest results
+npm run perf:report:latest
+
+# Generate from specific file
+npm run perf:report artifacts/baseline-2024-01-15.json
+
+# View reports
+git checkout perf-reports
+ls docs/perf/
+
+Report Sections
+    Test Summary: Duration, VUs, overall result
+    Performance Metrics: Response times, throughput
+    Error Analysis: Breakdown with histogram
+    NFR Compliance: Threshold validation
+    Recommendations: Actionable performance insights
+
+Troubleshooting
+Common Issues
+1. Connection Failures
+# Check target API accessibility
+curl -f $K6_BASE_URL/health
+
+# Verify credentials
+# Check test user can login to target system
+
+# Test network connectivity
+ping staging-api.solarium.com
+
+2. Authentication Errors
+# Verify environment variables
+echo $K6_CP_USER
+echo $K6_BASE_URL
+
+# Test credentials manually
+curl -X POST $K6_BASE_URL/api/v1/auth/login \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;email&quot;:&quot;&#39;$K6_CP_USER&#39;&quot;,&quot;password&quot;:&quot;&#39;$K6_CP_PASS&#39;&quot;}&#39;
+
+3. Monitoring Stack Issues
+# Check container status
+docker compose --profile monitoring ps
+
+# View logs
+npm run monitoring:logs
+
+# Restart services
+npm run monitoring:down
+npm run monitoring:up
+
+# Check ports
+netstat -tlnp | grep -E &quot;(3001|8086)&quot;
+
+4. Test Execution Failures
+# Enable debug logging
+export K6_LOG_LEVEL=debug
+
+# Run with verbose output
+npm run k6:health 2&gt;&amp;1 | tee test-debug.log
+
+# Check k6 container logs
+docker compose --profile k6 logs k6
+
+5. Performance Issues
+# Check system resources
+docker stats
+
+# Monitor during test execution
+htop  # or Task Manager on Windows
+
+# Reduce test load for debugging
+export K6_BASELINE_SHORT=true
+npm run k6:baseline
+
+Debug Commands
+Container Inspection
+
+# List all containers
+docker compose --profile k6 ps -a
+
+# Exec into k6 container
+docker compose --profile k6 run --rm k6 sh
+
+# Check container logs
+docker compose logs influxdb grafana k6
+
+Network Debugging
+# Test from k6 container
+docker compose --profile k6 run --rm k6 run -e K6_BASE_URL=$K6_BASE_URL \
+  --http-debug=full /scripts/smoke/health.js
+
+# Check DNS resolution
+nslookup staging-api.solarium.com
+
+File System Issues
+# Check artifact permissions
+ls -la artifacts/
+
+# Fix Docker volume permissions
+sudo chown -R $(id -u):$(id -g) artifacts/
+sudo chown -R 472:472 docker/grafana/
+
+Advanced Usage
+Custom Test Scenarios
+Creating New Tests
+
+// load-tests/scenarios/custom.js
+import { check } from &#39;k6&#39;;
+import { getConfig } from &#39;../config/k6.env.js&#39;;
+import { getAuthHeaders } from &#39;../lib/auth.js&#39;;
+import { httpGet } from &#39;../lib/http.js&#39;;
+
+export const options = {
+  stages: [
+    { duration: &#39;2m&#39;, target: 50 },
+    { duration: &#39;5m&#39;, target: 50 },
+    { duration: &#39;1m&#39;, target: 0 },
+  ],
+};
+
+export default function() {
+  const config = getConfig();
+  const headers = getAuthHeaders(config, &#39;cp&#39;);
+  
+  // Your custom test logic here
+  const response = httpGet(`${config.baseURL}/api/v1/custom-endpoint`, 
+    { headers }, config);
+  
+  check(response, {
+    &#39;custom check passed&#39;: (r) =&gt; r.status === 200,
+  });
+}
+
+Running Custom Tests:
+npm run k6 /scripts/scenarios/custom.js
+
+
+Performance Tuning
+k6 Configuration
+
+# Increase batch size for high throughput
+export K6_BATCH=50
+export K6_BATCH_PER_HOST=25
+
+# Adjust timeouts
+export K6_HTTP_TIMEOUT=60s
+
+# Memory optimization
+export K6_DISCARD_RESPONSE_BODIES=true
+
+System Optimization
+# Increase file descriptor limits
+ulimit -n 65536
+
+# Optimize Docker resources
+# Edit docker-compose.yml resource limits
+
+# Monitor resource usage
+docker stats --format &quot;table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}&quot;
+
+Integration with Other Tools
+Prometheus Integration
+
+# Add to docker-compose.yml
+prometheus:
+  image: prom/prometheus
+  ports:
+    - &quot;9090:9090&quot;
+  volumes:
+    - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+Custom Alerting:
+# Add webhook notifications
+export K6_WEBHOOK_URL=https://your-webhook.com/alerts
+
+# Configure alert thresholds
+export K6_ALERT_P95_THRESHOLD=3000
+export K6_ALERT_ERROR_RATE_THRESHOLD=1.0
+
+Performance Baselines
+Expected Metrics
+Staging Environment
+| Metric | Baseline Test | Stress Test | Health Check | |--------|---------------|-------------|--------------| | P95 Latency | &lt; 3 seconds | &lt; 5 seconds | &lt; 2 seconds | | Error Rate | &lt; 1% | &lt; 2% | &lt; 0.1% | | Throughput | &gt; 50 RPS | &gt; 30 RPS | &gt; 10 RPS | | CPU Usage | &lt; 60% | &lt; 80% | &lt; 40% |
+
+Production Environment
+| Metric | Baseline Test | Stress Test | Health Check | |--------|---------------|-------------|--------------| | P95 Latency | &lt; 2 seconds | &lt; 4 seconds | &lt; 1 second | | Error Rate | &lt; 0.5% | &lt; 1% | &lt; 0.01% | | Throughput | &gt; 100 RPS | &gt; 60 RPS | &gt; 20 RPS | | CPU Usage | &lt; 50% | &lt; 70% | &lt; 30% |
+
+Trend Analysis
+Weekly Reports: Automated trend analysis
+Regression Detection: Alert on &gt;20% performance degradation
+Capacity Planning: Growth projections based on trends
+</code></pre>
+
+</div>
+</body>
+</html>

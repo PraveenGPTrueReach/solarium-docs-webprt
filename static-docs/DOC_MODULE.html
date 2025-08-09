@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DOC_MODULE.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Document Management Module</h1>
+<h2>Overview</h2>
+<p>The Document Management Module provides comprehensive document handling capabilities for the Solarium Web Portal, including upload, validation, preview, and lifecycle management.</p>
+<h2>Key Components</h2>
+<h3>Document Types</h3>
+<ul>
+<li><strong>KYC Documents</strong>: Customer identity and financial documents</li>
+<li><strong>Lead Attachments</strong>: Documents attached to leads  </li>
+<li><strong>Generated Documents</strong>: System-generated PDFs (quotations, reports)</li>
+<li><strong>🆕 Quotation PDFs</strong>: Auto-generated immutable quotation documents</li>
+</ul>
+<h3>Document Statuses</h3>
+<ul>
+<li><code>Pending Review</code>: Newly uploaded, awaiting approval</li>
+<li><code>Approved</code>: Verified and locked (immutable)</li>
+<li><code>Rejected</code>: Requires re-upload with corrections</li>
+<li><code>Superseded</code>: Replaced by newer version</li>
+<li><strong>🆕 <code>Generated</code></strong>: System-created documents (quotations, reports)</li>
+</ul>
+<h3>File Constraints</h3>
+<ul>
+<li><p><strong>Maximum file size</strong>: 10MB</p>
+</li>
+<li><p><strong>Maximum files per lead</strong>: 7</p>
+</li>
+<li><p><strong>Supported formats</strong>: PDF, JPG, JPEG, PNG</p>
+</li>
+<li><p><strong>SAS token validity</strong>: 5 minutes</p>
+</li>
+<li><p><strong>🆕 Generated PDF validity</strong>: 5 minutes for SAS tokens</p>
+</li>
+<li><p><strong>🆕 PDF generation timeout</strong>: 3 seconds maximum</p>
+</li>
+<li><p><strong>🆕 Quotation PDF immutability</strong>: Locked after sharing</p>
+</li>
+</ul>
+<h2>Components</h2>
+<h3>DocumentUploader</h3>
+<p>Generic file upload component with:</p>
+<ul>
+<li>Drag-and-drop interface</li>
+<li>Progress tracking</li>
+<li>Validation and error handling</li>
+<li>File type and size limits</li>
+<li>Cancel functionality</li>
+</ul>
+<h3>DocumentViewer</h3>
+<p>Modal preview component with:</p>
+<ul>
+<li>PDF rendering</li>
+<li>Image display</li>
+<li>Download functionality</li>
+<li>Version history</li>
+<li>Status management</li>
+</ul>
+<pre><code class="language-markdown">### Document Types
+- **KYC Documents**: Customer identity and financial documents
+- **Lead Attachments**: Documents attached to leads  
+- **Generated Documents**: System-generated PDFs (quotations, reports)
+- **🆕 Quotation PDFs**: Auto-generated immutable quotation documents
+
+### Document Statuses
+- `Pending Review`: Newly uploaded, awaiting approval
+- `Approved`: Verified and locked (immutable)
+- `Rejected`: Requires re-upload with corrections
+- `Superseded`: Replaced by newer version
+- **🆕 `Generated`**: System-created documents (quotations, reports)
+
+Props:
+interface QuotationPdfPreviewModalProps {
+  open: boolean;
+  onClose: () =&gt; void;
+  quotationId: string | null;
+  quotationDisplayName?: string;
+}
+
+### DocCard
+Document display card with:
+- Thumbnail preview
+- Status indicators
+- Action buttons
+- Metadata display
+
+## Validation Rules
+
+### File Validation
+```typescript
+// Size validation
+file.size &lt;= DOCUMENT_CONFIG.MAX_FILE_SIZE (10MB)
+
+// Type validation
+DOCUMENT_CONFIG.ALLOWED_FILE_TYPES.includes(file.type)
+
+// Count validation
+currentCount &lt; DOCUMENT_CONFIG.MAX_FILES_PER_LEAD (7)
+</code></pre>
+
+</div>
+</body>
+</html>

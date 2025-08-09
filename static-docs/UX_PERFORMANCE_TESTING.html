@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UX_PERFORMANCE_TESTING.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>UX Performance Testing Guide</h1>
+<h2>Overview</h2>
+<p>UX Performance Testing validates frontend user experience metrics during concurrent backend load testing, providing a complete picture of end-to-end performance under realistic conditions.</p>
+<h2>Test Coverage</h2>
+<h3>Pages Tested</h3>
+<ul>
+<li><strong>Dashboard</strong>: Main landing page with widgets and data visualization</li>
+<li><strong>Leads</strong>: Lead management table with search and pagination  </li>
+<li><strong>Quotations</strong>: Quotation management with creation workflows</li>
+</ul>
+<h3>Metrics Captured</h3>
+<ul>
+<li><strong>TTFB</strong> (Time to First Byte): ≤ 1 second</li>
+<li><strong>FCP</strong> (First Contentful Paint): ≤ 2 seconds</li>
+<li><strong>TTI</strong> (Time to Interactive): ≤ 3 seconds</li>
+<li><strong>CLS</strong> (Cumulative Layout Shift): ≤ 0.1</li>
+<li><strong>LCP</strong> (Largest Contentful Paint): ≤ 2.5 seconds</li>
+</ul>
+<h2>Usage</h2>
+<h3>Local Testing</h3>
+<pre><code class="language-bash"># Start application
+npm run dev
+
+# Run UX performance tests
+npm run ux:test
+
+# Run with headed browser (for debugging)
+npm run ux:test:headed
+
+# Full test with metrics merging
+npm run ux:full-test
+
+Concurrent Load Testing
+# Run UX tests during k6 baseline test
+npm run perf:unified
+
+CI/CD Integration
+UX tests run automatically during baseline k6 tests:
+
+    Triggered only for baseline tests (to keep pipeline time reasonable)
+    Runs in parallel with k6 load testing
+    Results merged into unified performance report
+
+Test Architecture
+Concurrent Testing Flow
+┌─────────────┐    ┌─────────────┐
+│ k6 Load     │    │ Cypress UX  │
+│ Test        │    │ Tests       │
+│ (Backend)   │    │ (Frontend)  │
+└─────────────┘    └─────────────┘
+       │                  │
+       ▼                  ▼
+┌─────────────────────────────────┐
+│     Unified Report Generator    │
+│   (Backend + Frontend Metrics) │
+└─────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────┐
+│    Enhanced Performance Report  │
+│  (Markdown + JSON artifacts)    │
+└─────────────────────────────────┘
+
+Technology Stack
+    Cypress: E2E testing framework
+    Lighthouse: Performance auditing
+    cypress-audit: Cypress + Lighthouse integration
+    Axe: Accessibility testing
+    Chrome: Headless browser execution
+Performance Thresholds
+    Web Vitals Thresholds
+
+const THRESHOLDS = {
+  TTFB_MS: 1000,      // Time to First Byte
+  FCP_MS: 2000,       // First Contentful Paint  
+  TTI_MS: 3000,       // Time to Interactive
+  CLS_SCORE: 0.1,     // Cumulative Layout Shift
+  LCP_MS: 2500,       // Largest Contentful Paint
+};
+
+Lighthouse Scores
+
+const LIGHTHOUSE_THRESHOLDS = {
+  performance: 80,      // During load test
+  accessibility: 95,    // Always high
+  &#39;best-practices&#39;: 90, // Code quality
+  seo: 80,             // SEO basics
+};
+
+Realistic Testing Conditions
+
+During Load Test
+    Backend Load: 400 concurrent k6 virtual users
+    API Stress: Realistic server response times
+    Database Load: Concurrent database queries
+    Network Conditions: Production-like latency
+
+Benefits of Concurrent Testing
+    Real Performance: UX metrics under actual load
+    Bottleneck Detection: Frontend vs backend issues
+    End-to-End Validation: Complete user journey performance
+    Production Simulation: Realistic user conditions
+
+Test Implementation
+Page Load Testing
+
+it(&#39;should load Dashboard with acceptable UX metrics&#39;, () =&gt; {
+  cy.visit(&#39;/dashboard&#39;, {
+    onBeforeLoad: (win) =&gt; {
+      // Inject Web Vitals observer
+      injectWebVitalsObserver(win);
+    },
+  });
+  
+  // Wait for content
+  cy.get(&#39;[data-testid=&quot;dashboard-content&quot;]&#39;).should(&#39;be.visible&#39;);
+  
+  // Run Lighthouse audit
+  cy.lighthouse({
+    performance: 80,
+    accessibility: 95,
+  }).then((results) =&gt; {
+    const metrics = extractLighthouseMetrics(results, &#39;dashboard&#39;);
+    validatePerformanceMetrics(metrics, &#39;Dashboard&#39;);
+  });
+});
+
+Interaction Testing
+
+it(&#39;should handle dashboard interactions&#39;, () =&gt; {
+  const startTime = performance.now();
+  
+  cy.get(&#39;[data-testid=&quot;date-filter&quot;]&#39;).click();
+  cy.get(&#39;[data-testid=&quot;last-30-days&quot;]&#39;).click();
+  
+  cy.then(() =&gt; {
+    const duration = performance.now() - startTime;
+    expect(duration).to.be.lessThan(2000);
+  });
+});
+
+Results Analysis
+Unified Performance Report
+The merger script combines k6 and UX metrics into comprehensive reports:
+
+# Unified Performance Test Report
+
+## Backend Performance (k6)
+- P95 Response Time: 2,340ms
+- Error Rate: 0.3%
+- Throughput: 67 RPS
+
+## Frontend Performance (UX)
+- Average TTFB: 890ms
+- Average FCP: 1,650ms  
+- Average TTI: 2,890ms
+
+## Correlation Analysis
+- Backend health: ✅ Good
+- Frontend health: ✅ Good
+- Performance correlation: Both systems performing well
+
+Artifacts Generated
+    ux-performance-metrics.json: Raw UX metrics
+    unified-performance-{date}.json: Combined metrics
+    unified-performance-report-{date}.md: Enhanced report
+
+Troubleshooting
+Common Issues
+Tests Timing Out
+# Increase timeouts in cypress.config.ts
+pageLoadTimeout: 30000,
+defaultCommandTimeout: 10000,
+
+Lighthouse Fails
+# Check Chrome installation
+npx cypress info
+
+# Verify lighthouse plugin
+npm list @cypress-audit/lighthouse
+
+Authentication Issues
+# Check test credentials
+echo $CYPRESS_TEST_CP_USER
+echo $CYPRESS_TEST_CP_PASS
+
+Performance Thresholds Failing
+# Run without load to establish baseline
+npm run ux:test
+
+# Compare with concurrent load results
+npm run perf:unified
+Debug Mode
+# Run with headed browser
+npm run ux:test:headed
+
+# Enable Cypress debug logging
+DEBUG=cypress:* npm run ux:test
+
+
+CI/CD Integration
+Workflow Configuration
+# Only runs for baseline tests
+if: needs.preflight.outputs.test-type == &#39;baseline&#39;
+
+# Parallel execution
+needs: preflight
+runs-on: ubuntu-latest
+timeout-minutes: 30
+
+Artifact Collection
+    UX test results uploaded to GitHub Actions
+    Merged with k6 results automatically
+    Available for 30 days retention
+
+Best Practices
+Test Design
+    Focus on critical user journeys
+    Use realistic test data
+    Validate both performance and accessibility
+    Test interactions, not just page loads
+Performance Optimization
+    Run during actual load for realism
+    Use consistent test environment
+    Monitor trends over time
+    Set appropriate thresholds for load conditions
+Maintenance
+    Update thresholds based on infrastructure changes
+    Review failing tests promptly
+    Keep test credentials current
+    Monitor for new performance issues
+
+Support
+Resources
+    Cypress Documentation
+    Lighthouse Documentation
+    Web Vitals Guide
+    cypress-audit Plugin
+
+Contacts
+    Performance Team: #performance-testing
+    Frontend Team: #frontend-development
+    QA Team: #quality-assurance
+</code></pre>
+
+</div>
+</body>
+</html>

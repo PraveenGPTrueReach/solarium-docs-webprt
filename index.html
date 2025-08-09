@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solarium Documentation Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false });</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary-color: #002b45;
+      --accent-color: #00acc1;
+    }
+    /* Add these styles to properly format Markdown content */
+    .prose h1 { font-size: 2rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 1rem; }
+    .prose h2 { font-size: 1.75rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    .prose h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.75rem; }
+    .prose p { margin-bottom: 1rem; }
+    .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+    .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; }
+    .prose li { margin-bottom: 0.25rem; }
+    .prose strong { font-weight: 700; }
+    .prose em { font-style: italic; }
+    .prose code { background-color: #f0f0f0; padding: 0.1rem 0.25rem; border-radius: 0.25rem; }
+    .prose blockquote { border-left: 4px solid #ddd; padding-left: 1rem; margin-left: 0; margin-right: 0; font-style: italic; }
+    .mermaid-container {
+      margin: 1.5rem 0;
+    }
+    .diagram-content {
+      min-height: 100px;
+    }
+    /* Sidebar transition styles */
+    .sidebar-collapsed {
+      width: 50px !important;
+      overflow: visible !important;
+      padding: 1rem 0.5rem !important;
+    }
+    .sidebar-expanded {
+      width: 18rem !important; /* w-72 in Tailwind */
+    }
+    .main-expanded {
+      margin-left: 0;
+    }
+    #toggle-sidebar {
+      min-width: 24px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+    #toggle-sidebar:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    .is-collapsed #toggle-sidebar {
+      position: fixed;
+      top: 5rem;
+      left: 0.75rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.5rem;
+      border-radius: 0 0.25rem 0.25rem 0;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar-title {
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    /* Prototype button styling */
+    .prototype-btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      margin: 0.5rem 0 1rem 0;
+      transition: all 0.2s ease;
+    }
+    .prototype-btn:hover {
+      background-color: var(--accent-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <header class="bg-[var(--primary-color)] text-white p-4 flex items-center justify-between shadow-md">
+    <div class="flex items-center space-x-4">
+      <img src="logo.png" alt="Solarium Logo" class="h-10 w-36 object-contain">
+      <div>
+        <h1 class="text-xl font-bold">TrueReach AI</h1>
+        <p class="text-sm text-[var(--accent-color)]">Solution Design for Solarium</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    <aside id="sidebar" class="w-72 bg-white shadow-md p-4 overflow-y-auto transition-all duration-300">
+      <div class="toggle-container">
+        <h2 class="text-2xl font-bold text-[var(--primary-color)] sidebar-title">📁 Project Docs</h2>
+        <button id="toggle-sidebar" class="text-gray-500 hover:text-[var(--primary-color)] focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-6">
+        <!-- Delivery -->
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Delivery</h3>
+          <ul class="space-y-1">
+            <li><button onclick="showDeliveryDocuments(this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Delivery Documents</button></li>
+          </ul>
+        </div>
+        
+        <!-- Web Portal -->
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Web Portal</h3>
+          <ul class="space-y-1">
+            <li><button onclick="loadMarkdown('L1-SI.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Screen Inventory</button></li>
+            <li><button onclick="loadMarkdown('L3-FRS-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Functional Requirements Specification for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-NFRS-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Non-Functional Requirements Specification for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-KD-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Key Decisions for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-LLD-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Low-Level Design Document for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-IB-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Implementation Backlog for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-TSD-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Technology Stack Documentation for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-WF-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Workflow Details for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-CM-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Configuration Manual for Web Portal</button></li>
+            <li><button onclick="loadMarkdown('L3-DG-WEBPRT.md', this)" class="sidebar-btn text-left w-full px-2 py-1 rounded">Design Guide for Web Portal</button></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main id="main-content" class="flex-1 p-6 overflow-y-auto transition-all duration-300">
+      <div id="content" class="prose lg:prose-xl max-w-none"></div>
+    </main>
+  </div>
+
+  <footer class="bg-[var(--primary-color)] text-white text-sm text-center p-3">
+    TrueReach AI. Prepared for Solarium.
+  </footer>
+
+  <script>
+    // Highlight selected sidebar button
+    function highlightSidebarButton(btn) {
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('bg-gray-200', 'text-[var(--primary-color)]', 'font-bold'));
+      if (btn) {
+        btn.classList.add('bg-gray-200', 'text-[var(--primary-color)]', 'font-bold');
+      }
+    }
+
+    // Toggle sidebar visibility
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const toggleButton = document.getElementById('toggle-sidebar');
+      const sidebarContent = document.querySelector('#sidebar .space-y-6');
+      const sidebarTitle = document.querySelector('.sidebar-title');
+      const toggleContainer = document.querySelector('.toggle-container');
+      
+      // Show delivery documents by default when page loads
+      setTimeout(() => {
+        showDeliveryDocuments();
+      }, 100);
+
+      toggleButton.addEventListener('click', function() {
+        if (sidebar.classList.contains('w-72')) {
+          // Collapse sidebar
+          sidebar.classList.remove('w-72');
+          sidebar.classList.add('sidebar-collapsed');
+          sidebar.classList.add('is-collapsed');
+          mainContent.classList.add('main-expanded');
+          
+          // Change button icon to expand
+          toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>`;
+          
+          // Hide sidebar content
+          sidebarContent.style.display = 'none';
+          sidebarTitle.style.display = 'none';
+          toggleContainer.style.marginBottom = '0';
+        } else {
+          // Expand sidebar
+          sidebar.classList.remove('sidebar-collapsed');
+          sidebar.classList.remove('is-collapsed');
+          sidebar.classList.add('w-72');
+          mainContent.classList.remove('main-expanded');
+          
+          // Change button icon to collapse
+          toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>`;
+          
+          // Show sidebar content
+          sidebarContent.style.display = '';
+          sidebarTitle.style.display = '';
+          toggleContainer.style.marginBottom = '1rem';
+        }
+      });
+    });
+
+    async function loadDocument(filePath, btn) {
+      highlightSidebarButton(btn);
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error(`Failed to load ${filePath}: ${response.status}`);
+        const text = await response.text();
+        
+        // Check if this is an HTML file
+        if (filePath.toLowerCase().endsWith('.html')) {
+          // For HTML files, extract the content and inject it
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const body = doc.body;
+          
+          if (body) {
+            document.getElementById("content").innerHTML = body.innerHTML;
+          } else {
+            document.getElementById("content").innerHTML = text;
+          }
+          return;
+        }
+        
+        // For Markdown files, continue with existing logic
+        // Fix specific syntax issues in Mermaid diagrams based on their type
+        let fixedText = text.replace(/```mermaid\s+([\s\S]+?)```/g, function(match, diagram) {
+          let diagramType = "unknown";
+          let trimmed = diagram.trim();
+          
+          // Determine diagram type
+          if (trimmed.startsWith("flowchart") || trimmed.startsWith("graph")) {
+            diagramType = "flowchart";
+          } else if (trimmed.startsWith("sequenceDiagram")) {
+            diagramType = "sequence";
+          } else if (trimmed.startsWith("classDiagram")) {
+            diagramType = "class";
+          } else if (trimmed.startsWith("erDiagram")) {
+            diagramType = "er";
+          }
+          
+          let fixed = trimmed;
+          
+          // Apply fixes specific to each diagram type
+          if (diagramType === "flowchart") {
+            // For flowcharts, simplify node labels to avoid syntax issues
+            fixed = fixed
+              .replace(/<br\s*\/?>/g, '\\n')
+              // Simplify node labels by removing complex content
+              .replace(/\[([^\]]*?)\/([^\]]*?)\]/g, '[$1_$2]') // Replace / with _
+              .replace(/\[([^\]]*?)\(([^\)]*?)\)([^\]]*?)\]/g, '[$1_$2_$3]') // Replace () with _
+              .replace(/\{([^\}]*?)\(([^\)]*?)\)([^\}]*?)\}/g, '{$1_$2_$3}') // Replace () with _
+              .replace(/"([^"]*)"/g, '_$1_') // Replace "text" with _text_
+              .replace(/\\n /g, '\\n'); // Fix newlines with spaces
+          } 
+          else if (diagramType === "class") {
+            // For class diagrams, handle method parameters carefully
+            fixed = fixed
+              .replace(/<br\s*\/?>/g, '\\n')
+              // Protect method signatures by not altering them
+              .replace(/\+([a-zA-Z0-9_]+)\(([^)]*)\)/g, '+$1___PARAM___$2___CLOSE___');
+            
+            // After protecting method signatures, apply general fixes
+            fixed = fixed
+              .replace(/\(([^)]*)\)/g, '_$1_') // Replace general parentheses
+              .replace(/___PARAM___/g, '(') // Restore method params opening
+              .replace(/___CLOSE___/g, ')'); // Restore method params closing
+          }
+          else if (diagramType === "sequence") {
+            // Sequence diagrams generally need fewer fixes
+            fixed = fixed
+              .replace(/<br\s*\/?>/g, '\\n')
+              .replace(/\(([^)]*)\)/g, '"$1"'); // Replace () with quotes for better compatibility
+          }
+          
+          return '```mermaid\n' + fixed + '\n```';
+        });
+        
+        // Configure marked for proper rendering
+        marked.use({
+          gfm: true,
+          breaks: true
+        });
+        
+        const html = marked.parse(fixedText);
+        document.getElementById("content").innerHTML = html;
+        
+        // After Markdown rendering, find and process all code blocks
+        const codeBlocks = document.querySelectorAll('pre code');
+        codeBlocks.forEach(block => {
+          // Check if this block is a mermaid diagram
+          const content = block.textContent.trim();
+          if (
+            content.startsWith('flowchart') || 
+            content.startsWith('sequenceDiagram') || 
+            content.startsWith('classDiagram') ||
+            content.startsWith('erDiagram') ||
+            content.startsWith('graph')
+          ) {
+            // Replace the code block with a mermaid div
+            const parent = block.parentNode;
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = content;
+            
+            // Replace the pre element with our mermaid div
+            if (parent && parent.parentNode) {
+              parent.parentNode.replaceChild(container, parent);
+            }
+          }
+        });
+        
+        // Initialize Mermaid with type-specific settings
+        setTimeout(() => {
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            flowchart: {
+              useMaxWidth: true,
+              htmlLabels: false,
+              curve: 'linear'
+            },
+            sequence: {
+              useMaxWidth: true,
+              showSequenceNumbers: false
+            },
+            class: {
+              useMaxWidth: true
+            },
+            er: {
+              useMaxWidth: true
+            },
+            theme: 'default'
+          });
+          
+          try {
+            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+          } catch (error) {
+            console.error("Error initializing Mermaid:", error);
+          }
+        }, 100);
+        
+      } catch (error) {
+        console.error(error);
+        document.getElementById("content").innerHTML = `<div class="text-red-600">Error loading document: ${error.message}</div>`;
+      }
+    }
+
+    // Backward compatibility function for existing markdown buttons
+    async function loadMarkdown(filePath, btn) {
+      await loadDocument(filePath, btn);
+    }
+
+    // Function to show delivery documents options
+    function showDeliveryDocuments(btn) {
+      highlightSidebarButton(btn);
+      
+      const content = `
+        <div class="prose lg:prose-xl max-w-none">
+          <h1>Delivery Documents</h1>
+          <p>Access comprehensive documentation for the Solarium Customer App project.</p>
+          
+          <div style="display: grid; gap: 30px; margin: 30px 0;">
+            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 30px; background: #f8f9fa;">
+              <h2 style="margin-top: 0; color: black;">Technical Documentation</h2>
+              <p style="color: #6c757d; margin-bottom: 20px;">Technical API documentation generated with CompoDOC, including interfaces, classes, components, and comprehensive code coverage reports for the React Native TypeScript application.</p>
+              <a href="static-docs/index.html" target="_blank" class="prototype-btn">Open Documentation</a>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById("content").innerHTML = content;
+    }
+
+
+  </script>
+</body>
+</html>

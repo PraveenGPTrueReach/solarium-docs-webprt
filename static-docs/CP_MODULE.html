@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CP_MODULE.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Channel Partner Module Documentation</h1>
+<h2>Overview</h2>
+<p>The Channel Partner module provides comprehensive management functionality for channel partners in the Solarium Web Portal. It includes list management, bulk operations, status transitions, KAM assignments, and detailed partner information views.</p>
+<h2>Architecture</h2>
+<h3>Components Structure</h3>
+<p>src/components/channelPartner/ ├── ChannelPartnerGrid.tsx # Main grid component with virtualization ├── ChannelPartnerFilters.tsx # Advanced filtering interface ├── ChannelPartnerStatusCell.tsx # Status display and toggle component ├── ChannelPartnerDetailDrawer.tsx # Detail view with tabs ├── BulkAssignKAMDialog.tsx # Bulk KAM assignment dialog ├── CPBulkActionToolbar.tsx # Bulk operation controls ├── index.ts # Module exports └── tabs/ ├── BasicInfoTab.tsx # Basic partner information ├── AssignedLeadsTab.tsx # Partner&#39;s leads ├── CommissionHistoryTab.tsx # Commission tracking └── ActivityTimelineTab.tsx # Activity log</p>
+<h2>API Integration</h2>
+<h3>Endpoints Used</h3>
+<ul>
+<li><code>GET /api/v1/channel-partners</code> - List partners with filtering</li>
+<li><code>GET /api/v1/channel-partners/{id}</code> - Get partner details</li>
+<li><code>POST /api/v1/channel-partners</code> - Create new partner</li>
+<li><code>PATCH /api/v1/channel-partners/{id}</code> - Update partner</li>
+<li><code>PATCH /api/v1/channel-partners/{id}/activate</code> - Activate partner</li>
+<li><code>PATCH /api/v1/channel-partners/{id}/deactivate</code> - Deactivate partner</li>
+<li><code>POST /api/v1/channel-partners/bulk-assign-kam</code> - Bulk KAM assignment</li>
+<li><code>GET /api/v1/kams</code> - Get KAMs for assignment</li>
+</ul>
+<h3>RTK Query Hooks</h3>
+<pre><code class="language-typescript">// Data fetching
+const { data, isLoading, error } = useGetChannelPartnersQuery({
+  status: &#39;active&#39;,
+  territory: &#39;West&#39;,
+  limit: 25,
+  offset: 0
+});
+
+// Mutations
+const [activateCP] = useActivateChannelPartnerMutation();
+const [deactivateCP] = useDeactivateChannelPartnerMutation();
+const [bulkAssignKAM] = useBulkAssignKamMutation();
+const [updateCP] = useUpdateChannelPartnerMutation();
+
+Component Usage
+ChannelPartnerGrid
+Main grid component supporting filtering, sorting, pagination, and bulk operations.
+
+import { ChannelPartnerGrid } from &#39;../components/channelPartner&#39;;
+
+&lt;ChannelPartnerGrid
+  channelPartners={partners}
+  total={total}
+  loading={isLoading}
+  error={error}
+  page={page}
+  pageSize={25}
+  sortBy=&quot;name&quot;
+  sortOrder=&quot;asc&quot;
+  selectedCPs={selectedIds}
+  onPageChange={setPage}
+  onCPSelect={handleSelect}
+  onSelectAll={handleSelectAll}
+  onCPView={handleView}
+  onCPEdit={handleEdit}
+  enableVirtualization={partners.length &gt; 100}
+/&gt;
+
+BulkAssignKAMDialog
+Dialog for assigning KAMs to multiple channel partners.
+
+import { BulkAssignKAMDialog } from &#39;../components/channelPartner&#39;;
+
+&lt;BulkAssignKAMDialog
+  open={dialogOpen}
+  onClose={() =&gt; setDialogOpen(false)}
+  selectedCPIds={selectedPartnerIds}
+  selectedCPNames={selectedPartnerNames}
+  onSuccess={(count) =&gt; handleAssignmentSuccess(count)}
+/&gt;
+
+Custom Hooks
+useChannelPartnersTable
+Complete table management hook with filtering, pagination, and sorting.
+import { useChannelPartnersTable } from &#39;../hooks/useChannelPartnersTable&#39;;
+
+const {
+  channelPartners,
+  total,
+  isLoading,
+  filters,
+  page,
+  pageSize,
+  setFilters,
+  setPage,
+  setPageSize,
+  clearFilters,
+  refresh
+} = useChannelPartnersTable({
+  initialPageSize: 25
+});
+
+useChannelPartners
+Basic hook for fetching channel partners with optional filtering.
+
+import { useChannelPartners } from &#39;../hooks/useChannelPartners&#39;;
+
+const {
+  channelPartners,
+  activeChannelPartners,
+  isLoading,
+  error,
+  refreshChannelPartners
+} = useChannelPartners({ status: &#39;active&#39; });
+
+Bulk Operations
+Selection Management
+    Maximum 50 partners can be selected for bulk operations
+    Selection state is managed at the page level
+    Bulk toolbar appears when items are selected
+    Selection can be cleared programmatically
+Bulk KAM Assignment
+const handleBulkAssign = async () =&gt; {
+  try {
+    const result = await bulkAssignKAM({
+      cpIds: selectedPartnerIds,
+      kamId: selectedKAMId,
+      remarks: assignmentRemarks
+    }).unwrap();
+    
+    console.log(`Successfully assigned: ${result.data.successful}`);
+    console.log(`Failed: ${result.data.failed}`);
+  } catch (error) {
+    console.error(&#39;Bulk assignment failed:&#39;, error);
+  }
+};
+
+Status Management
+Status Transitions
+pending → active (activation)
+active → deactivated (deactivation with reason)
+deactivated → active (reactivation)
+
+const [activatePartner] = useActivateChannelPartnerMutation();
+
+// Optimistic update happens automatically
+// UI updates immediately, rolls back on error
+const handleActivate = async (partnerId: string) =&gt; {
+  try {
+    await activatePartner(partnerId).unwrap();
+    // Success - optimistic update is confirmed
+  } catch (error) {
+    // Failure - optimistic update is rolled back
+    showError(&#39;Activation failed&#39;);
+  }
+};
+
+
+RBAC (Role-Based Access Control)
+Admin Users
+    Full CRUD operations
+    Bulk operations
+    Status management
+    KAM assignments
+KAM Users
+    Read-only access
+    View partner details
+    No edit capabilities
+    No bulk operations
+Implementation
+const { user } = useAuth();
+const isAdmin = user?.role === &#39;admin&#39;;
+const isReadOnly = !isAdmin;
+
+// Components automatically adapt based on role
+&lt;ChannelPartnerGrid
+  // ... other props
+  readonly={isReadOnly}
+/&gt;
+
+Territory Filtering
+Territory filtering is applied automatically based on user role:
+
+    Admin: Sees all partners across all territories
+    KAM: Sees only partners in assigned territories
+Filtering is handled server-side through the baseQueryWithTerritoryInjection.
+
+Error Handling
+API Errors
+    Network errors show toast notifications
+    403 errors dispatch global forbidden events
+    Validation errors are displayed inline
+Optimistic Update Failures
+    Automatic rollback of UI changes
+    Error toast notifications
+    Retry mechanisms for transient failures
+
+
+Performance Optimization
+Virtualization
+Grid automatically virtualizes when displaying &gt; 100 items:
+&lt;ChannelPartnerGrid
+  enableVirtualization={channelPartners.length &gt; 100}
+  height={600}
+/&gt;
+
+Caching
+    RTK Query provides automatic caching
+    Cache invalidation on mutations
+    Background refetching on focus
+
+Testing
+
+Unit Tests
+Located in src/components/channelPartner/__tests__/:
+
+ChannelPartnerGrid.test.tsx - Grid functionality and RBAC
+BulkAssignKAMDialog.test.tsx - Dialog validation and submission
+ChannelPartnerStatusCell.test.tsx - Status transitions
+CPBulkActionToolbar.test.tsx - Bulk operation controls
+
+Integration Tests
+src/api/endpoints/__tests__/channelPartnerEndpoints.test.ts - API integration
+src/hooks/__tests__/useChannelPartnersTable.test.tsx - Hook behavior
+
+E2E Tests
+cypress/e2e/channel-partners.spec.ts - Complete user workflows
+
+# Unit tests
+npm run test src/components/channelPartner
+
+# Integration tests  
+npm run test src/api/endpoints/channelPartnerEndpoints
+
+# E2E tests
+npm run cy:run cypress/e2e/channel-partners.spec.ts
+
+Running Tests
+# Coverage report
+npm run test:coverage
+
+Storybook Stories
+Available Stories
+Located in src/components/channelPartner/stories/:
+
+ChannelPartnerGrid.stories.tsx
+
+Default grid view
+Loading state
+Error state
+Empty state
+Admin vs KAM variants
+BulkAssignKAMDialog.stories.tsx
+
+Default dialog
+With selected partners
+Over-limit warning
+Loading state
+ChannelPartnerStatusCell.stories.tsx
+
+Active status
+Pending status
+Deactivated status
+Read-only mode
+
+Viewing Stories
+npm run storybook
+# Navigate to http://localhost:6006
+# Browse to Channel Partner → [Component Name]
+
+Migration Guide
+From Mock Data to Live API
+Replace mockChannelPartners usage with useChannelPartnersTable
+Update component props to use real data structures
+Handle loading and error states
+Test with various user roles
+
+Updating Existing Code
+
+// Before (mock data)
+const partners = mockChannelPartners;
+
+// After (live API)
+const { channelPartners: partners, isLoading, error } = useChannelPartnersTable();
+
+if (isLoading) return &lt;LoadingSpinner /&gt;;
+if (error) return &lt;ErrorMessage error={error} /&gt;;
+
+Troubleshooting
+Common Issues
+Partners not loading
+
+Check user role and territory assignments
+Verify API endpoint accessibility
+Check network connectivity
+Bulk operations failing
+
+Ensure selection doesn&#39;t exceed 50 items
+Verify admin role permissions
+Check for required fields (KAM selection, remarks)
+Status toggle not working
+
+Confirm admin role permissions
+Check for network errors
+Verify partner ID validity
+
+
+Debug Mode
+Enable debug logging in development
+
+// In development console
+localStorage.setItem(&#39;debug&#39;, &#39;solarium:channelpartner*&#39;);
+
+Future Enhancements
+Planned Features
+Export functionality for partner data
+Advanced filtering by date ranges
+Partner performance analytics
+Automated KAM assignment based on territory
+Partner communication history
+Contributing
+When adding new features:
+
+Follow existing patterns and conventions
+Add comprehensive tests (unit + integration)
+Update this documentation
+Create Storybook stories for new components
+Ensure RBAC compliance
+Add E2E test coverage
+Support
+For issues or questions:
+
+Check test files for usage examples
+Review Storybook stories for component APIs
+Consult the codebase for implementation details
+Run tests to identify breaking changes
+
+## Storybook Stories
+
+### Available Stories
+
+All Channel Partner components have comprehensive Storybook documentation:
+
+#### ChannelPartnerGrid Stories
+- **Location**: `src/components/channelPartner/stories/ChannelPartnerGrid.stories.tsx`
+- **URL**: `http://localhost:6006/?path=/story/channel-partner-channelpartnergrid--default`
+- **Variants**:
+  - Default (admin view)
+  - Loading state
+  - Error state
+  - Empty state
+  - With selection
+  - KAM read-only view
+  - Large dataset with virtualization
+  - Network error handling
+  - Pagination controls
+
+#### BulkAssignKAMDialog Stories
+- **Location**: `src/components/channelPartner/stories/BulkAssignKAMDialog.stories.tsx`
+- **URL**: `http://localhost:6006/?path=/story/channel-partner-bulkassignkamdialog--default`
+- **Variants**:
+  - Default dialog
+  - With many partners
+  - Over-limit warning (&gt;50 partners)
+  - Closed state
+
+#### ChannelPartnerStatusCell Stories
+- **Location**: `src/components/channelPartner/stories/ChannelPartnerStatusCell.stories.tsx`
+- **URL**: `http://localhost:6006/?path=/story/channel-partner-channelpartnerstatuscell--active-status`
+- **Variants**:
+  - Active status (admin toggleable)
+  - Pending status (admin toggleable)
+  - Deactivated status (admin toggleable)
+  - Read-only active (KAM view)
+  - Read-only pending (KAM view)
+  - Read-only deactivated (KAM view)
+  - All statuses comparison
+
+#### ChannelPartnerDetailDrawer Stories
+- **Location**: `src/components/channelPartner/stories/ChannelPartnerDetailDrawer.stories.tsx`
+- **URL**: `http://localhost:6006/?path=/story/channel-partner-channelpartnerdetaildrawer--admin-view`
+- **Variants**:
+  - Admin view (full editing)
+  - KAM read-only view
+  - Pending partner
+  - Closed state
+  - Mobile responsive view
+
+#### CPBulkActionToolbar Stories
+- **Location**: `src/components/channelPartner/stories/CPBulkActionToolbar.stories.tsx`
+- **URL**: `http://localhost:6006/?path=/story/channel-partner-cpbulkactiontoolbar--single-selection`
+- **Variants**:
+  - Single selection
+  - Multiple selection
+  - Maximum selection (50 partners)
+  - Disabled state
+  - No selection
+
+### Visual Regression Testing
+
+Stories can be used for visual regression testing:
+
+```bash
+# Run Storybook in CI mode
+npm run build-storybook
+
+# Run visual regression tests (if configured)
+npm run test:visual
+
+# Take screenshots for baseline
+npm run storybook:screenshots
+</code></pre>
+
+</div>
+</body>
+</html>

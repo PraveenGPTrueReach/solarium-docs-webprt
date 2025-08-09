@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CI_LOAD_TESTING.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>CI Load Testing</h1>
+<h2>Overview</h2>
+<p>Automated performance testing runs nightly at 02:00 UTC using GitHub Actions. The workflow executes k6 load tests against staging environment and uploads results to artifacts.</p>
+<h2>Workflow Details</h2>
+<h3>Trigger Options</h3>
+<ul>
+<li><strong>Nightly Schedule</strong>: Runs automatically at 02:00 UTC daily</li>
+<li><strong>Manual Dispatch</strong>: Can be triggered manually via GitHub Actions UI</li>
+<li><strong>Parameters</strong>: Test type, environment, duration override</li>
+</ul>
+<h3>Test Types Available</h3>
+<ul>
+<li><code>baseline</code>: 400 VUs for 30 minutes (default for nightly)</li>
+<li><code>stress</code>: Multi-stage stress test (0→800→600→400 VUs)</li>
+<li><code>health</code>: Quick health check test</li>
+</ul>
+<h3>Workflow Steps</h3>
+<ol>
+<li><strong>Pre-flight Checks</strong>: Validate configuration and required files</li>
+<li><strong>Load Test Execution</strong>: Run k6 with monitoring stack</li>
+<li><strong>Results Collection</strong>: Parse results and generate analysis</li>
+<li><strong>Artifact Upload</strong>: Save JSON summaries and logs</li>
+<li><strong>Notifications</strong>: Send results to Slack</li>
+</ol>
+<h2>Manual Triggering</h2>
+<h3>Via GitHub CLI</h3>
+<pre><code class="language-bash"># Run baseline test (short mode)
+npm run ci:load-test:baseline
+
+# Run stress test (short mode)
+npm run ci:load-test:stress
+
+# Run health check
+npm run ci:load-test:health
+
+Via GitHub UI
+    Navigate to Actions → Load Test
+    Click &quot;Run workflow&quot;
+    Select parameters:
+        Test type (baseline/stress/health)
+        Environment (staging/production)
+        Duration override (for testing)
+Artifacts
+Generated Files
+    *-results.json: Complete test results and metrics
+    analysis-report.txt: Parsed performance analysis
+    dashboard-links.md: Links to Grafana dashboards
+    logs/: Container logs from monitoring stack
+Retention
+    Test Results: 30 days
+    Monitoring Logs: 7 days
+
+Dashboard Access
+During CI Run
+# Port-forward to access dashboard
+kubectl port-forward svc/grafana 3001:3000
+
+# Open dashboard
+open http://localhost:3001/d/solarium-perf-dashboard/solarium-performance-dashboard
+
+Key Panels
+    Response Time Percentiles
+    Throughput &amp; Virtual Users
+    Error Breakdown (4xx/5xx/Timeouts)
+    Server Resource Utilization
+Thresholds &amp; Success Criteria
+Baseline Test
+    P95 Response Time &lt; 3 seconds
+    Error Rate &lt; 1%
+    No server errors &gt; 50 occurrences
+Stress Test
+    P95 Response Time &lt; 5 seconds
+    Error Rate &lt; 2%
+    Soak stability &gt; 95%
+Health Check
+    All endpoints respond successfully
+    Response time &lt; 2 seconds
+
+Troubleshooting
+Common Issues
+Test Timeouts
+# Check workflow timeout settings
+# Default: 90 minutes for full tests
+
+Missing Secrets
+Required GitHub Secrets:
+
+    K6_CP_USER, K6_CP_PASS
+    K6_ADMIN_USER, K6_ADMIN_PASS
+    K6_KAM_USER, K6_KAM_PASS
+    K6_STAGING_BASE_URL, K6_PROD_BASE_URL
+    SLACK_WEBHOOK_URL (optional)
+
+Monitoring Stack Issues:
+# Check container logs in artifacts
+# influxdb.log, grafana.log, k6.log
+
+Debug Mode
+Enable debug logging by setting workflow variable:
+env:
+  ACTIONS_STEP_DEBUG: true
+
+Environment URLs
+# Staging environment
+K6_STAGING_BASE_URL=https://staging-api.solarium.com
+
+# Production environment (use with caution)
+K6_PROD_BASE_URL=https://api.solarium.com
+
+Optional Integrations
+# InfluxDB for metrics (if external)
+K6_INFLUX_URL=http://influxdb.monitoring.svc.cluster.local:8086/k6
+
+# Slack notifications
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
+
+Setting Up Secrets
+Via GitHub UI
+    Navigate to repository Settings → Secrets and variables → Actions
+    Click &quot;New repository secret&quot;
+    Add each secret with the corresponding value
+
+Via GitHub CLI
+# Set individual secrets
+gh secret set K6_CP_USER --body &quot;cp_load_test_user&quot;
+gh secret set K6_CP_PASS --body &quot;secure_password_123&quot;
+
+# Set from environment file
+gh secret set --env-file .env.secrets
+
+Security Best Practices
+Test User Management
+    Use dedicated test users for load testing
+    Rotate passwords regularly
+    Limit permissions to minimum required
+    Monitor test user activity
+Secret Rotation
+    Rotate all secrets monthly
+    Update secrets in both GitHub and target systems
+    Verify tests pass after rotation
+Access Control
+    Limit repository access to authorized personnel
+    Use branch protection rules
+    Audit secret access logs
+
+Validation
+Test Secret Configuration
+
+# Run health check to validate secrets
+gh workflow run load-test.yml --field test_type=health
+
+Troubleshooting
+    Check workflow logs for authentication errors
+    Verify secret names match exactly
+    Ensure target systems accept test credentials
+
+## Testing &amp; Verification Steps
+
+**1. Validate workflow file syntax:**
+```cmd
+cd .github/workflows
+python -c &quot;import yaml; yaml.safe_load(open(&#39;load-test.yml&#39;))&quot;
+
+2. Test manual workflow dispatch:
+gh workflow run load-test.yml --field test_type=health --field duration_override=true
+
+3. Monitor workflow execution:
+gh run list --workflow=load-test.yml
+
+4. Check workflow logs:
+gh run view --log
+
+5. Verify artifacts are uploaded:
+gh run download &lt;run-id&gt;
+
+6. Test with different parameters:
+gh workflow run load-test.yml --field test_type=baseline --field environment=staging --field duration_override=true
+
+7. Validate secret configuration:
+gh secret list
+
+8. Check workflow status badge:
+curl -I https://github.com/your-org/solarium-webprt/workflows/Nightly%20Performance%20Load%20Test/badge.svg
+</code></pre>
+
+</div>
+</body>
+</html>

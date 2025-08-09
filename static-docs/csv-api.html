@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>csv-api.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.6; }
+  pre { background:#f6f8fa; padding:1rem; overflow:auto; }
+  code { background:#f6f8fa; padding:0.1rem 0.3rem; }
+  a { color:#0b5fff; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .container { max-width: 1100px; margin: auto; }
+  hr { margin: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>CSV Toolkit V2 API Reference</h1>
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#core-classes">Core Classes</a></li>
+<li><a href="#type-definitions">Type Definitions</a></li>
+<li><a href="#react-hooks">React Hooks</a> </li>
+<li><a href="#domain-specific-apis">Domain-Specific APIs</a></li>
+<li><a href="#performance-utilities">Performance Utilities</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+</ul>
+<h2>Core Classes</h2>
+<h3>CSVToolkit</h3>
+<p>Main utility class for CSV parsing and validation.</p>
+<h4>Methods</h4>
+<h5><code>parseCSVV2&lt;T&gt;(file: File, options: CSVParseOptionsV2&lt;T&gt;): Promise&lt;CSVParseResultV2&lt;T&gt;&gt;</code></h5>
+<p>Parse CSV file with schema validation and progress tracking.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>file: File</code> - CSV file to parse</li>
+<li><code>options: CSVParseOptionsV2&lt;T&gt;</code> - Configuration options</li>
+</ul>
+<p><strong>Returns:</strong> <code>Promise&lt;CSVParseResultV2&lt;T&gt;&gt;</code> - Parsed data with validation results</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const result = await CSVToolkit.parseCSVV2(file, {
+  schema: LEAD_SCHEMA,
+  onProgress: (processed, total) =&gt; console.log(`${processed}/${total}`),
+  signal: abortController.signal,
+});
+
+validateFileV2(file: File): FileError | null
+
+Validate file before processing.
+
+Parameters:
+
+file: File - File to validate
+Returns: FileError | null - Error details or null if valid
+
+CSVExporter
+High-performance CSV export utilities.
+
+Methods
+export&lt;T&gt;(data: T[], config?: CSVExportConfig&lt;T&gt;): CSVExportResult
+Export data array to CSV with performance metrics.
+
+Parameters:
+
+data: T[] - Array of objects to export
+config?: CSVExportConfig&lt;T&gt; - Export configuration
+Returns: CSVExportResult - Export result with content, blob, and metrics
+
+download&lt;T&gt;(data: T[], config?: CSVExportConfig&lt;T&gt;): ExportMetrics
+Export and automatically download CSV file.
+
+exportLargeDataset&lt;T&gt;(...): Promise&lt;CSVExportResult&gt;
+Stream large datasets with chunked processing.
+
+Type Definitions
+CSVParseOptionsV2&lt;T&gt;
+Configuration for CSV parsing.
+
+interface CSVParseOptionsV2&lt;T extends Record&lt;string, any&gt;&gt; {
+  schema: SchemaDefinition&lt;T&gt;;
+  onProgress?: ProgressCallback;
+  signal?: AbortSignal;  
+  delimiter?: string;
+  encoding?: string;
+  skipEmptyLines?: boolean;
+  trimWhitespace?: boolean;
+}
+
+SchemaDefinition&lt;T&gt;
+Schema definition for validation.
+
+interface SchemaDefinition&lt;T extends Record&lt;string, any&gt;&gt; {
+  name: string;
+  fields: SchemaField&lt;T&gt;[];
+  rules?: ValidationRule&lt;T&gt;[];
+  options?: {
+    allowExtraColumns?: boolean;
+    strictMode?: boolean;
+    maxRows?: number;
+  };
+}
+
+CSVExportConfig&lt;T&gt;
+Configuration for CSV export.
+
+interface CSVExportConfig&lt;T extends Record&lt;string, any&gt;&gt; {
+  filename?: string;
+  delimiter?: &#39;,&#39; | &#39;;&#39; | &#39;\t&#39;;
+  headers?: string[];
+  fields?: (keyof T)[];
+  includeHeaders?: boolean;
+  useBOM?: boolean;
+  lineEnding?: &#39;CRLF&#39; | &#39;LF&#39;;
+  dateFormat?: &#39;ISO&#39; | &#39;YYYY-MM-DD&#39; | &#39;DD/MM/YYYY&#39;;
+  emptyValue?: string;
+  nullValue?: string;
+}
+
+React Hooks
+
+useCSVImport
+Hook for managing CSV import operations.
+const { 
+  state, 
+  importFile, 
+  uploadValidRows, 
+  cancel, 
+  reset 
+} = useCSVImport();
+
+useCSVExport
+Hook for managing CSV export operations.
+
+const { 
+  state, 
+  exportData, 
+  exportLeads, 
+  cancel 
+} = useCSVExport();
+useCSVProgress
+Hook for progress tracking with cancellation.
+
+const { 
+  progress, 
+  startProgress, 
+  updateProgress, 
+  finishProgress 
+} = useCSVProgress();
+
+Domain-Specific APIs
+Lead Import/Export
+import { 
+  LEAD_SCHEMA,
+  exportLeadsToCSV,
+  transformLeadCSVToPayload 
+} from &#39;@solarium/csv/lead&#39;;
+
+Constants
+    LEAD_SCHEMA: SchemaDefinition&lt;LeadCSVRow&gt; - Validation schema for leads
+    LEAD_EXPORT_FIELDS: (keyof LeadExportData)[] - Export field mapping
+    LEAD_EXPORT_HEADERS: string[] - User-friendly headers
+Functions
+        exportLeadsToCSV(leads, config?) - Optimized lead export
+        transformLeadCSVToPayload(row) - Transform CSV row to API format
+
+Performance Utilities
+ProgressTracker
+import { ProgressTracker } from &#39;@solarium/csv/progress&#39;;
+
+const tracker = new ProgressTracker(250); // 250ms throttle
+const state = tracker.createState(processed, total);
+Performance Monitoring
+import { PerformanceMonitor } from &#39;@solarium/csv/optimizations&#39;;
+
+const monitor = new PerformanceMonitor();
+monitor.mark(&#39;start&#39;);
+// ... operations
+const duration = monitor.measure(&#39;operation&#39;, &#39;start&#39;);
+
+
+Error Handling
+Error Types
+FileError
+File validation errors (size, type, encoding).
+
+CSVParseError
+CSV parsing errors (malformed data).
+
+CSVValidationError
+Business logic validation errors.
+
+Error Utilities
+import { 
+  createFileError,
+  createValidationError,
+  consolidateErrors 
+} from &#39;@solarium/csv&#39;;
+Error Codes
+import { 
+  FILE_ERROR_CODES,
+  PARSE_ERROR_CODES, 
+  VALIDATION_ERROR_CODES 
+} from &#39;@solarium/csv&#39;;
+Performance Benchmarking
+import { runCSVBenchmarks } from &#39;@solarium/csv&#39;;
+
+const results = await runCSVBenchmarks();
+console.log(&#39;Benchmark results:&#39;, results);
+
+Migration Guide
+From V1 to V2
+
+Update imports:
+// Old
+import { CSVToolkit } from &#39;../services/csv/csvToolkit&#39;;
+
+// New  
+import { CSVToolkit } from &#39;@solarium/csv&#39;;
+
+Use schema-based parsing:
+// Old
+const result = await CSVToolkit.parseCSV(file, config);
+
+// New
+const result = await CSVToolkit.parseCSVV2(file, {
+  schema: MY_SCHEMA,
+  onProgress: callback,
+});
+
+Enhanced error handling:
+// V2 provides categorized errors
+if (result.errors.hasErrors) {
+  console.log(&#39;File errors:&#39;, result.errors.file);
+  console.log(&#39;Parse errors:&#39;, result.errors.parse);  
+  console.log(&#39;Validation errors:&#39;, result.errors.validation);
+}
+</code></pre>
+
+</div>
+</body>
+</html>
